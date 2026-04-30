@@ -1,9 +1,9 @@
 /* @bruin
-name: {{ var.client }}.orders
+name: "{{ var.client }}.orders"
 type: sf.sql
-description: Orders for client {{ var.client }}
+description: "Orders for client {{ var.client }}"
 depends:
-  - {{ var.client }}.users
+  - "{{ var.client }}.users"
 @bruin */
 
 SELECT o.id, o.user_id, o.amount
