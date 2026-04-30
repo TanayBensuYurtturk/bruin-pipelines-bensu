@@ -17,4 +17,7 @@ variants:
     client: alpha
     region: us
     schedule: "@hourly"
-  
+  client_beta:
+    client: beta
+    region: eu
+    schedule: "0 6 * * *"
