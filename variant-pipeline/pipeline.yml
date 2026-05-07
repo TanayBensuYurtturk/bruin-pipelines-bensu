@@ -21,3 +21,7 @@ variants:
     client: beta
     region: eu
     schedule: "0 6 * * *"
+  client_gamma:
+    client: gamma
+    region: ap
+    schedule: "@weekly"
