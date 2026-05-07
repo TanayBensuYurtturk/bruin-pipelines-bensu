@@ -1,0 +1,2 @@
+name: simple_pipeline
+schedule: "@daily"
