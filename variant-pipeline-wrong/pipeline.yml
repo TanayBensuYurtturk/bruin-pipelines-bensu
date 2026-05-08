@@ -13,7 +13,7 @@ variables:
     default: "@daily"
 
 variants:
-  client_alpha??:
+  client_alpha:
     client: alpha_wrong
     region: 1234
     schedule: "@hourly"
