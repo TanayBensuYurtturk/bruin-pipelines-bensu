@@ -14,14 +14,14 @@ variables:
 
 variants:
   client_alpha:
-    client: alpha
+    client: alpha_oxr
     region: us
     schedule: "@hourly"
   client_beta:
-    client: beta
+    client: beta_oxr
     region: eu
     schedule: "0 6 * * *"
   client_gamma:
-    client: gamma
+    client: gamma_oxr
     region: ap
     schedule: "@weekly"
