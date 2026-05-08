@@ -1,9 +1,17 @@
 /* @bruin
-name: "{{ var.client }}.orders"
-type: sf.sql
-description: "Orders for client {{ var.client }}"
+
+name: '{{ var.client }}.orders'
+type: duckdb.sql
+description: Orders for client {{ var.client }}
+
 depends:
-  - "{{ var.client }}.users"
+  - '{{ var.client }}.users'
+
+columns:
+  - name: New Column
+    type: string
+    description: Description for the new column
+
 @bruin */
 
 SELECT o.id, o.user_id, o.amount

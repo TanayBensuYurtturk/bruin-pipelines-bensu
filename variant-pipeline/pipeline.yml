@@ -11,6 +11,9 @@ variables:
   schedule:
     type: string
     default: "@daily"
+  sabo:
+    type: string
+    default: "@sabsab"
 
 variants:
   client_alpha:

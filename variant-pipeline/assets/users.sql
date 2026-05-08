@@ -1,6 +1,6 @@
 /* @bruin
 name: "{{ var.client }}.users"
-type: sf.sql
+type: duckdb.sql
 description: "Users data for client {{ var.client }} in region {{ var.region }}"
 @bruin */
 
