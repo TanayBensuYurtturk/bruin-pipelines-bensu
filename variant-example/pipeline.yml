@@ -24,18 +24,18 @@ variables:
     default: 30
 
 variants:
-  client_alpha:
-    client: alpha
+  client_alpha_example:
+    client: alpha_example
     region: us
     schedule: "@hourly"
     forecast_days: 7
-  client_beta:
-    client: beta
+  client_beta_example:
+    client: beta_example
     region: eu
     schedule: "0 6 * * *"
     forecast_days: 60
-  client_gamma:
-    client: gamma
+  client_gamma_example:
+    client: gamma_example
     region: ap
     schedule: "@weekly"
     # forecast_days omitted — uses default (30)
