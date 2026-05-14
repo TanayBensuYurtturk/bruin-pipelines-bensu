@@ -1,13 +1,13 @@
 /* @bruin
 
-name: '{{ var.client }}_raw_users_{{ var.region }}'
+name: 'analytics_{{ var.region }}.{{ var.client }}_raw_users_{{ var.region }}'
 type: bq.sql
 
 materialization:
   type: table
 
 depends:
-  - '{{ var.client }}_seed_{{ var.region }}'
+  - 'analytics_{{ var.region }}.{{ var.client }}_seed_{{ var.region }}'
 
 @bruin */
 
