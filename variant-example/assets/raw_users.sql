@@ -6,6 +6,9 @@ type: bq.sql
 materialization:
   type: table
 
+depends:
+  - '{{ var.client }}_seed_{{ var.region }}'
+
 @bruin */
 
 SELECT
