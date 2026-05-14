@@ -1,6 +1,6 @@
 /* @bruin
 name: "{{ var.client }}_users_summary_{{ var.region }}"
-type: duckdb.sql
+type: bq.sql
 materialization:
   type: table
 depends:
@@ -14,4 +14,5 @@ SELECT
   COUNT(*) AS users_signed_up
 FROM {{ var.client }}_raw_users_{{ var.region }}
 WHERE signed_up_at >= CURRENT_DATE - INTERVAL '{{ var.forecast_days }}' DAY
-GROUP BY 1, 2, 3;
+GROUP BY 1, 2, 3
+HAVING COUNT(*) >= {{ var.min_signups }};

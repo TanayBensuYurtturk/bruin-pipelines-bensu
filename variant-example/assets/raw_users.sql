@@ -1,10 +1,14 @@
 /* @bruin
-name: "{{ var.client }}_raw_users_{{ var.region }}"
-type: duckdb.sql
+
+name: '{{ var.client }}_raw_users_{{ var.region }}'
+type: bq.sql
+
 materialization:
   type: table
+
 depends:
-  - "{{ var.client }}_seed_{{ var.region }}"
+  - '{{ var.client }}_seed_{{ var.region }}'
+
 @bruin */
 
 SELECT
