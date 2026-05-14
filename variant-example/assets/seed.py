@@ -1,13 +1,14 @@
 """@bruin
 name: "{{ var.client }}_seed_{{ var.region }}"
 type: python
+connection: "gcp-default"
 @bruin"""
 
 from datetime import datetime, timedelta
 
-import duckdb
+from google.cloud import bigquery
 
-conn = duckdb.connect("/tmp/variants_demo.duckdb")
+client = bigquery.Client()
 
 now = datetime.now()
 data = {
@@ -31,20 +32,34 @@ data = {
     ],
 }
 
-for region, rows in data.items():
-    conn.execute(f"CREATE SCHEMA IF NOT EXISTS analytics_{region}")
-    conn.execute(f"DROP TABLE IF EXISTS analytics_{region}.raw_users")
-    conn.execute(f"""
-        CREATE TABLE analytics_{region}.raw_users (
-            user_id      INTEGER,
-            email        VARCHAR,
-            signed_up_at TIMESTAMP,
-            tenant       VARCHAR
-        )
-    """)
-    conn.executemany(
-        f"INSERT INTO analytics_{region}.raw_users VALUES (?, ?, ?, ?)", rows
-    )
+schema = [
+    bigquery.SchemaField("user_id", "INTEGER"),
+    bigquery.SchemaField("email", "STRING"),
+    bigquery.SchemaField("signed_up_at", "TIMESTAMP"),
+    bigquery.SchemaField("tenant", "STRING"),
+]
 
-conn.close()
-print("Seeded all regions (us, eu, ap)")
+for region, rows in data.items():
+    dataset_id = f"{client.project}.analytics_{region}"
+    dataset = bigquery.Dataset(dataset_id)
+    client.create_dataset(dataset, exists_ok=True)
+
+    table_id = f"{dataset_id}.raw_users"
+    client.delete_table(table_id, not_found_ok=True)
+    table = bigquery.Table(table_id, schema=schema)
+    client.create_table(table)
+
+    json_rows = [
+        {
+            "user_id": r[0],
+            "email": r[1],
+            "signed_up_at": r[2].isoformat(),
+            "tenant": r[3],
+        }
+        for r in rows
+    ]
+    errors = client.insert_rows_json(table_id, json_rows)
+    if errors:
+        raise RuntimeError(f"Insert errors for {table_id}: {errors}")
+
+print("Seeded all regions (us, eu, ap) into BigQuery")
