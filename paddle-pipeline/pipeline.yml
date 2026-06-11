@@ -1,0 +1,2 @@
+name: paddle_pipeline
+schedule: "@daily"
