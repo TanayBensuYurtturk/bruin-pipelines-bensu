@@ -7,6 +7,7 @@ materialization:
 depends:
   - lineage_demo.stg_orders
   - lineage_demo.stg_customers
+  - uri: bigquery://bruin-playground-bensu.cloud_test.raw_events
 tags:
   - mart
 @bruin */

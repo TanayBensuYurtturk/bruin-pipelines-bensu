@@ -1,6 +1,7 @@
 /* @bruin
 name: cloud_test.raw_events
 type: bq.sql
+uri: bigquery://bruin-playground-bensu.cloud_test.raw_events
 description: Synthetic events stamped with the run's interval window, so each monthly batch produces a distinct window.
 materialization:
   type: table
