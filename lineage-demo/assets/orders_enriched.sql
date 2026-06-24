@@ -1,14 +1,13 @@
 /* @bruin
 name: lineage_demo.orders_enriched
 type: bq.sql
-description: Orders enriched with customer info and tax — fans in stg_orders, stg_customers, raw_customers, and the external cloud_test.daily_summary.
+description: Orders enriched with customer info and tax — fans in stg_orders, stg_customers, raw_customers.
 materialization:
   type: table
 depends:
   - lineage_demo.stg_orders
   - lineage_demo.stg_customers
   - lineage_demo.raw_customers
-  - uri: bigquery://bruin-playground-bensu.cloud_test.daily_summary
 columns:
   - name: order_id
     type: integer
