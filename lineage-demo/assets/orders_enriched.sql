@@ -34,7 +34,7 @@ columns:
       - name: positive
   - name: amount_with_tax
     type: float
-    description: Order amount including 10% tax.
+    description: Order amount including 20% tax.
     checks:
       - name: non_negative
   - name: order_date
@@ -60,7 +60,7 @@ SELECT
     o.customer_id,
     c.region,
     o.amount,
-    ROUND(o.amount * 1.1, 2) AS amount_with_tax,
+    ROUND(o.amount * 1.2, 2) AS amount_with_tax,
     o.order_date
 FROM lineage_demo.stg_orders o
 JOIN lineage_demo.stg_customers c USING (customer_id)
