@@ -1,0 +1,8 @@
+name: gitlab.issues
+type: ingestr
+connection: gcp-default
+
+parameters:
+  source_connection: gitlab-bensu
+  source_table: issues
+  destination: bigquery

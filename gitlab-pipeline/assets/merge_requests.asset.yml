@@ -1,0 +1,8 @@
+name: gitlab.merge_requests
+type: ingestr
+connection: gcp-default
+
+parameters:
+  source_connection: gitlab-bensu
+  source_table: merge_requests
+  destination: bigquery
