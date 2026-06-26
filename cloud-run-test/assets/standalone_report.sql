@@ -11,4 +11,4 @@ tags:
 SELECT
     DATE '{{ start_date }}' AS run_date,
     'standalone'           AS source,
-    42                     AS value
+    50                     AS value
