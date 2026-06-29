@@ -1,0 +1,8 @@
+name: recurly.accounts
+type: ingestr
+connection: gcp-default
+
+parameters:
+  source_connection: recurly-bensu
+  source_table: accounts
+  destination: bigquery

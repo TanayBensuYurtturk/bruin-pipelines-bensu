@@ -1,0 +1,8 @@
+name: recurly.transactions
+type: ingestr
+connection: gcp-default
+
+parameters:
+  source_connection: recurly-bensu
+  source_table: transactions
+  destination: bigquery

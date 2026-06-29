@@ -1,0 +1,8 @@
+name: recurly.plans
+type: ingestr
+connection: gcp-default
+
+parameters:
+  source_connection: recurly-bensu
+  source_table: plans
+  destination: bigquery

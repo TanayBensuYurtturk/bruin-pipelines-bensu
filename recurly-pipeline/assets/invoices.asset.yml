@@ -1,0 +1,8 @@
+name: recurly.invoices
+type: ingestr
+connection: gcp-default
+
+parameters:
+  source_connection: recurly-bensu
+  source_table: invoices
+  destination: bigquery

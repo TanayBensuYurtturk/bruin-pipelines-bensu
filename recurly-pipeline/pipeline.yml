@@ -1,0 +1,2 @@
+name: recurly_pipeline
+schedule: "@daily"
