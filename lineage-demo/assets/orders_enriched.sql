@@ -60,7 +60,7 @@ SELECT
     o.customer_id,
     c.region,
     o.amount,
-    ROUND(o.amount * 1.4, 8) AS amount_with_tax,
+    ROUND(o.amount * 2.0, 10) AS amount_with_tax,
     o.order_date
 FROM lineage_demo.stg_orders o
 JOIN lineage_demo.stg_customers c USING (customer_id)
