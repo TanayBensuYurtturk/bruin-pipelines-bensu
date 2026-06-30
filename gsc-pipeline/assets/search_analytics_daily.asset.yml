@@ -1,0 +1,8 @@
+name: gsc.search_analytics_daily
+type: ingestr
+connection: gcp-default
+
+parameters:
+  source_connection: gsc-bensu
+  source_table: 'daily:query,country'
+  destination: bigquery
