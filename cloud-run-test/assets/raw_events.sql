@@ -6,7 +6,7 @@ description: Synthetic events stamped with the run's interval window, so each mo
 materialization:
   type: table
 tags:
-  - source
+  - events
 @bruin */
 
 SELECT

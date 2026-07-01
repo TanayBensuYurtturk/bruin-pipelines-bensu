@@ -1,0 +1,15 @@
+name: hooks_applicable_type
+schedule: "@daily"
+
+# Default hooks scoped to specific SQL asset types via `applicable_type`.
+# Only assets whose `type` is listed here inherit the pre/post hooks.
+# duckdb.sql -> inherits ; bq.sql -> does NOT inherit (not in the list).
+default:
+  hooks:
+    applicable_type:
+      - duckdb.sql
+    pre:
+      - query: "CREATE TEMP TABLE IF NOT EXISTS hook_marker (note VARCHAR)"
+      - query: "INSERT INTO hook_marker VALUES ('pre-hook ran')"
+    post:
+      - query: "INSERT INTO hook_marker VALUES ('post-hook ran')"
