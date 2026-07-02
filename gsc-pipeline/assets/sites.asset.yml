@@ -1,8 +1,0 @@
-name: gsc.sites
-type: ingestr
-connection: gcp-default
-
-parameters:
-  source_connection: gsc-bensu
-  source_table: sites
-  destination: bigquery
