@@ -1,8 +1,0 @@
-name: paddle.customers
-type: ingestr
-connection: gcp-default
-
-parameters:
-  source_connection: paddle-kitup
-  source_table: customers
-  destination: bigquery

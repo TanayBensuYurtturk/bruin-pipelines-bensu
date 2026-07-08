@@ -1,0 +1,13 @@
+name: warehouse-override-test
+
+# Tests the run-time Snowflake warehouse override.
+#
+# Normal run uses the variable default (GONG_TEST_WH):
+#   bruin run --environment snowflake-test ./warehouse-override-test
+#
+# Urgent rerun on a different warehouse, no asset edits:
+#   bruin run --environment snowflake-test --var '{"warehouse":"SNOWFLAKE_LEARNING_WH"}' ./warehouse-override-test
+variables:
+  warehouse:
+    type: string
+    default: GONG_TEST_WH
