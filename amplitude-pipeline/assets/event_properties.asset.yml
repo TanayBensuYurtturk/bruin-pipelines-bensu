@@ -1,0 +1,8 @@
+name: amplitude.event_properties
+type: ingestr
+connection: gcp-default
+
+parameters:
+  source_connection: amplitude-bensu
+  source_table: event_properties
+  destination: bigquery

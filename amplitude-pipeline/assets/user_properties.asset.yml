@@ -1,0 +1,8 @@
+name: amplitude.user_properties
+type: ingestr
+connection: gcp-default
+
+parameters:
+  source_connection: amplitude-bensu
+  source_table: user_properties
+  destination: bigquery

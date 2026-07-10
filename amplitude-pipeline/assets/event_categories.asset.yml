@@ -1,0 +1,8 @@
+name: amplitude.event_categories
+type: ingestr
+connection: gcp-default
+
+parameters:
+  source_connection: amplitude-bensu
+  source_table: event_categories
+  destination: bigquery
