@@ -13,8 +13,8 @@ columns:
     type: VARCHAR
 @bruin */
 
-SELECT 1 AS product_id, 'Laptop3'   AS product_name, 999.99 AS price
+SELECT 1 AS product_id, 'Laptop2'   AS product_name, 999.99 AS price
 UNION ALL
-SELECT 2 AS product_id, 'Mouse3'    AS product_name,  29.99 AS price
+SELECT 2 AS product_id, 'Mouse2'    AS product_name,  29.99 AS price
 UNION ALL
-SELECT 3 AS product_id, 'Keyboard' AS product_name,  79.99 AS price
+SELECT 3 AS product_id, 'Keyboar2' AS product_name,  79.99 AS price

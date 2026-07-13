@@ -17,8 +17,8 @@ columns:
 @bruin */
 
 -- Oracle only supports scd2_by_time, which REQUIRES a timestamp/date incremental_key.
-SELECT 1 AS product_id, 'Laptop'   AS product_name, TIMESTAMP '2024-01-15 09:00:00' AS updated_at FROM dual
+SELECT 1 AS product_id, 'Laptop'   AS product_name, CURRENT_TIMESTAMP AS updated_at FROM dual
 UNION ALL
-SELECT 2 AS product_id, 'Mouse'    AS product_name, TIMESTAMP '2024-01-15 15:00:00' AS updated_at FROM dual
+SELECT 2 AS product_id, 'Mouse'    AS product_name, CURRENT_TIMESTAMP AS updated_at FROM dual
 UNION ALL
-SELECT 3 AS product_id, 'Keyboard' AS product_name, TIMESTAMP '2024-01-15 01:00:00' AS updated_at FROM dual
+SELECT 3 AS product_id, 'Keyboard' AS product_name, CURRENT_TIMESTAMP AS updated_at FROM dual
