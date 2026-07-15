@@ -1,0 +1,8 @@
+name: fastspring.coupons
+type: ingestr
+connection: gcp-default
+
+parameters:
+  source_connection: fastspring-bensu
+  source_table: coupons
+  destination: bigquery

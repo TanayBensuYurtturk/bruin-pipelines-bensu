@@ -1,0 +1,8 @@
+name: fastspring.revenue_report
+type: ingestr
+connection: gcp-default
+
+parameters:
+  source_connection: fastspring-bensu
+  source_table: revenue_report
+  destination: bigquery

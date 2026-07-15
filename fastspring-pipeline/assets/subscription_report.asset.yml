@@ -1,0 +1,8 @@
+name: fastspring.subscription_report
+type: ingestr
+connection: gcp-default
+
+parameters:
+  source_connection: fastspring-bensu
+  source_table: subscription_report
+  destination: bigquery

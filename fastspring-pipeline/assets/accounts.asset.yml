@@ -1,0 +1,8 @@
+name: fastspring.accounts
+type: ingestr
+connection: gcp-default
+
+parameters:
+  source_connection: fastspring-bensu
+  source_table: accounts
+  destination: bigquery
