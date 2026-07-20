@@ -1,0 +1,8 @@
+name: payrails.payments
+type: ingestr
+connection: gcp-default
+
+parameters:
+  source_connection: payrails-bensu
+  source_table: payments
+  destination: bigquery
