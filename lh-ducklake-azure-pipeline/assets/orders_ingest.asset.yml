@@ -1,0 +1,8 @@
+name: ducklake.orders_ingest
+type: ingestr
+connection: ducklake-azure
+
+parameters:
+  source_connection: duckdb-default
+  source_table: raw.orders
+  destination: duckdb
