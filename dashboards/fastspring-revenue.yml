@@ -1,0 +1,77 @@
+name: FastSpring Revenue
+description: FastSpring orders from BigQuery (bruin-playground-bensu)
+connection: gcp-default
+
+filters:
+  - name: currency
+    type: select
+    default: "All"
+    options:
+      values: ["All", "EUR", "USD"]
+  - name: date_range
+    type: date-range
+    default: all_time
+
+rows:
+  - widgets:
+      - name: Revenue
+        type: metric
+        col: 4
+        sql: |
+          SELECT ROUND(SUM(subtotal), 2) AS value
+          FROM `bruin-playground-bensu.fastspring.orders`
+          WHERE completed
+            AND changed_display_iso8601 >= '{{ filters.date_range.start }}'
+            AND changed_display_iso8601 <= '{{ filters.date_range.end }}'
+            {% if filters.currency != 'All' %} AND currency = '{{ filters.currency }}' {% endif %}
+        value: { field: value, type: number, format: "$,.2f" }
+      - name: Orders
+        type: metric
+        col: 4
+        sql: |
+          SELECT COUNT(*) AS value
+          FROM `bruin-playground-bensu.fastspring.orders`
+          WHERE completed
+            AND changed_display_iso8601 >= '{{ filters.date_range.start }}'
+            AND changed_display_iso8601 <= '{{ filters.date_range.end }}'
+            {% if filters.currency != 'All' %} AND currency = '{{ filters.currency }}' {% endif %}
+        value: { field: value, type: number, format: ",.0f" }
+      - name: Currencies
+        type: metric
+        col: 4
+        sql: |
+          SELECT COUNT(DISTINCT currency) AS value
+          FROM `bruin-playground-bensu.fastspring.orders` WHERE completed
+        value: { field: value, type: number, format: ",.0f" }
+  - widgets:
+      - name: Revenue by Month
+        type: chart
+        chart: area
+        col: 12
+        sql: |
+          SELECT DATE_TRUNC(changed_display_iso8601, MONTH) AS month,
+                 ROUND(SUM(subtotal), 2) AS revenue
+          FROM `bruin-playground-bensu.fastspring.orders`
+          WHERE completed
+            AND changed_display_iso8601 >= '{{ filters.date_range.start }}'
+            AND changed_display_iso8601 <= '{{ filters.date_range.end }}'
+            {% if filters.currency != 'All' %} AND currency = '{{ filters.currency }}' {% endif %}
+          GROUP BY 1 ORDER BY 1
+        x: { field: month, type: date, title: Month, format: "%b %Y" }
+        y: { field: [revenue], type: number, title: Revenue, format: "$,.0f" }
+  - widgets:
+      - name: Recent Orders
+        type: table
+        col: 12
+        sql: |
+          SELECT changed_display_iso8601 AS date, currency, ROUND(subtotal, 2) AS subtotal
+          FROM `bruin-playground-bensu.fastspring.orders`
+          WHERE completed
+            AND changed_display_iso8601 >= '{{ filters.date_range.start }}'
+            AND changed_display_iso8601 <= '{{ filters.date_range.end }}'
+            {% if filters.currency != 'All' %} AND currency = '{{ filters.currency }}' {% endif %}
+          ORDER BY date DESC LIMIT 25
+        columns:
+          - { name: date, label: Date }
+          - { name: currency, label: Currency }
+          - { name: subtotal, label: Subtotal }
