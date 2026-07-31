@@ -1,4 +1,4 @@
-name: Test Invalid Dashboard
+name: Test Valid Dashboard
 description: Intentionally broken for BRU-5373 — `row` is a typo for `rows`, so the
   required `rows` property is missing and DAC schema validation fails.
 connection: gcp-default
