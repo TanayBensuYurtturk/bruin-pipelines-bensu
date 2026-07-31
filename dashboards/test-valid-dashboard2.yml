@@ -7,4 +7,4 @@ rows:
         type: metric
         col: 12
         sql: |
-          SELECT 1 AS value
+          SELECT 2 AS value
