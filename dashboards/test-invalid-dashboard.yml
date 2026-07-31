@@ -6,7 +6,7 @@ connection: gcp-default
 # BUG (on purpose): should be `rows:`. With `rows` missing, asset-service must
 # reject this file and surface a validation error in Cloud instead of silently
 # dropping it.
-rows:
+row:
   - widgets:
       - name: Answer
         type: metric
