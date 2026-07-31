@@ -1,11 +1,6 @@
 name: Test Valid Dashboard
-description: Intentionally broken for BRU-5373 — `row` is a typo for `rows`, so the
-  required `rows` property is missing and DAC schema validation fails.
 connection: gcp-default
 
-# BUG (on purpose): should be `rows:`. With `rows` missing, asset-service must
-# reject this file and surface a validation error in Cloud instead of silently
-# dropping it.
 row:
   - widgets:
       - name: Answer
