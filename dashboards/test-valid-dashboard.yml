@@ -1,0 +1,12 @@
+name: Test Valid Dashboard
+description: Valid dashboard for BRU-5373 end-to-end test (should parse and appear)
+connection: gcp-default
+
+rows:
+  - widgets:
+      - name: Answer
+        type: metric
+        col: 12
+        sql: |
+          SELECT 42 AS value
+        value: { field: value, type: number, format: ",.0f" }
