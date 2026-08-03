@@ -1,4 +1,4 @@
-name: Test Valid Dashboard
+name: Test Invalid Dashboard
 connection: gcp-default
 
 row:
