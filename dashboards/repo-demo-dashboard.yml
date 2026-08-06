@@ -1,11 +1,14 @@
 name: Repo Demo Dashboard
-description: Example repo-based (DAC) dashboard for testing the view toggles
-connection: gcp-default
 
 rows:
   - widgets:
-      - name: Answer
-        type: metric
+      - name: Welcome
+        type: text
         col: 12
-        sql: |
-          SELECT 42 AS value
+        content: |
+          # Repo Demo Dashboard
+
+          A mock repo-based dashboard for testing. It uses a static **text**
+          widget, so it needs no connection or query to render.
+
+          Use the card's ⋮ menu to try **Disable chat** and **Hide YAML**.
