@@ -1,7 +1,7 @@
 name: Test Valid Dashboard
 connection: gcp-default
 
-row:
+rows:
   - widgets:
       - name: Answer
         type: metric

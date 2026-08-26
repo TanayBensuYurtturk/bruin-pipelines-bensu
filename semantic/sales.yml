@@ -1,0 +1,43 @@
+schema: v1
+name: sales
+label: Sales
+description: Semantic model over the sales table built by the semantic_demo pipeline
+source:
+  table: bruin-playground-bensu.semantic_demo.sales
+
+dimensions:
+  - name: created_at
+    type: time
+    granularities:
+      day: date_trunc(created_at, DAY)
+      month: date_trunc(created_at, MONTH)
+  - name: region
+    type: string
+  - name: channel
+    type: string
+
+metrics:
+  - name: revenue
+    label: Revenue
+    expression: sum(amount)
+    format:
+      type: currency
+      currency: USD
+      decimals: 0
+  - name: sales_count
+    label: Sales
+    expression: count(*)
+  - name: unique_customers
+    label: Customers
+    expression: count(distinct customer_id)
+  - name: avg_sale_value
+    label: Avg Sale Value
+    expression: "{revenue} / {sales_count}"
+    format:
+      type: currency
+      currency: USD
+      decimals: 2
+
+segments:
+  - name: online
+    filter: "channel = 'online'"

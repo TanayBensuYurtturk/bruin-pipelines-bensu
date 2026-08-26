@@ -1,0 +1,108 @@
+name: Semantic Sales Demo
+description: Dashboard driven by the semantic/sales.yml model (no raw SQL in widgets)
+connection: gcp-default
+model: sales # semantic layer reference
+
+filters:
+  - name: region
+    type: select
+    default: North America
+    options:
+      values: [North America, Europe, APAC]
+  - name: date_range
+    type: date-range
+    default: all_time
+
+queries:
+  online_by_region:
+    model: sales
+    dimensions:
+      - name: region
+    metrics: [revenue]
+    segments: [online]
+    sort:
+      - name: revenue
+        direction: desc
+
+rows:
+  - widgets:
+      - name: Revenue
+        type: metric
+        metric: revenue # revenue: sum(amount) from sales semantic model
+        filters:
+          - dimension: region
+            operator: equals
+            value: "{{ filters.region }}"
+          - dimension: created_at
+            operator: between
+            value:
+              start: "{{ filters.date_range.start }}"
+              end: "{{ filters.date_range.end }}"
+        value: { field: revenue, type: number, format: "$,.0f" }
+        col: 4
+      - name: Sales
+        type: metric
+        metric: sales_count # sales_count: count(*) from sales semantic model
+        filters:
+          - dimension: region
+            operator: equals
+            value: "{{ filters.region }}"
+        value: { field: sales_count, type: number, format: ",.0f" }
+        col: 4
+      - name: Avg Sale Value
+        type: metric
+        metric: avg_sale_value # avg_sale_value: revenue / sales_count from sales semantic model
+        filters:
+          - dimension: region
+            operator: equals
+            value: "{{ filters.region }}"
+        value: { field: avg_sale_value, type: number, format: "$,.2f" }
+        col: 4
+
+  - widgets:
+      - name: Revenue Trend
+        type: chart
+        chart: area
+        dimension: created_at # created_at: date_trunc(created_at, DAY) from sales semantic model
+        granularity: month
+        metrics: [revenue]
+        filters:
+          - dimension: created_at
+            operator: between
+            value:
+              start: "{{ filters.date_range.start }}"
+              end: "{{ filters.date_range.end }}"
+        sort:
+          - name: created_at
+            direction: asc
+        col: 8
+      - name: Online Revenue by Region
+        type: chart
+        chart: bar
+        query: online_by_region
+        col: 4
+
+  - widgets:
+      - name: Sales Breakdown
+        type: table
+        model: sales
+        dimensions:
+          - name: region
+          - name: channel
+        metrics: [revenue, sales_count]
+        sort:
+          - name: revenue
+            direction: desc
+        limit: 20
+        columns:
+          - name: region
+            label: Region
+          - name: channel
+            label: Channel
+          - name: revenue
+            label: Revenue
+            number: currency
+          - name: sales_count
+            label: Sales
+            number: number
+        col: 12
