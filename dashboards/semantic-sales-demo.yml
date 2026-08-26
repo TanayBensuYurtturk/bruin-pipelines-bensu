@@ -9,9 +9,6 @@ filters:
     default: North America
     options:
       values: [North America, Europe, APAC]
-  - name: date_range
-    type: date-range
-    default: all_time
 
 queries:
   online_by_region:
@@ -33,11 +30,6 @@ rows:
           - dimension: region
             operator: equals
             value: "{{ filters.region }}"
-          - dimension: created_at
-            operator: between
-            value:
-              start: "{{ filters.date_range.start }}"
-              end: "{{ filters.date_range.end }}"
         value: { field: revenue, type: number, format: "$,.0f" }
         col: 4
       - name: Sales
@@ -66,12 +58,6 @@ rows:
         dimension: created_at # created_at: date_trunc(created_at, DAY) from sales semantic model
         granularity: month
         metrics: [revenue]
-        filters:
-          - dimension: created_at
-            operator: between
-            value:
-              start: "{{ filters.date_range.start }}"
-              end: "{{ filters.date_range.end }}"
         sort:
           - name: created_at
             direction: asc
