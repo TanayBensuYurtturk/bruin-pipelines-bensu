@@ -1,0 +1,170 @@
+name: Conditional Formatting
+description: Table conditional formatting reference — gradients, range units, conditions, mirroring
+
+rows:
+  - widgets:
+      - name: Coloring
+        type: table
+        col: 12
+        data:
+          columns: [region, revenue, growth, health, rating]
+          rows:
+            - [North, 1200, 12, 0.98, 4]
+            - [South, 4800, -5, 0.40, 2]
+            - [East, 3100, 8, 0.72, 3]
+            - [West, 900, 22, 0.15, 1]
+            - [Central, 2500, 0, 0.55, 5]
+        columns:
+          - name: region
+            format:
+              - { backgroundColor: "#F1F5F9", textColor: "#0F172A", bold: true }
+
+          - name: revenue
+            number: currency
+            format:
+              - { backgroundColor: [red, white, green] }                                  # auto min→max
+
+          - name: growth
+            number: number
+            format:
+              - { backgroundColor: [red, white, green], range: [-25, 0, 25], unit: absolute }   # 0 = neutral
+
+          - name: health
+            number: ".0%"
+            format:
+              - { backgroundColor: [red, white, green] }                                  # auto min→max
+
+          - name: rating
+            number: number
+            format:
+              - { backgroundColor: [red, amber, green], range: [0, 50, 100], unit: percentile }
+
+  - widgets:
+      - name: More ranges
+        type: table
+        col: 12
+        data:
+          columns: [item, score, load, headroom, rank]
+          rows:
+            - [A, 20, 0.20, 40, 5]
+            - [B, 55, 0.50, 75, 12]
+            - [C, 80, 0.80, 90, 30]
+            - [D, 95, 0.95, 100, 48]
+            - [E, 40, 0.40, 55, 60]
+        columns:
+          - name: item
+
+          - name: score
+            number: number
+            format:
+              - { backgroundColor: [red, amber, green], range: [0, 60, 90], unit: absolute }
+
+          - name: load
+            number: ".0%"
+            format:
+              - { backgroundColor: [white, red], range: [0, 1], unit: absolute }           # 0% → 100%
+
+          - name: headroom
+            number: number
+            format:
+              - { backgroundColor: [red, green], range: [40, 100], unit: absolute }
+
+          - name: rank
+            number: number
+            format:
+              - { backgroundColor: [green, white, red], range: [0, 50, 100], unit: percentile }   # low rank = good
+
+  - widgets:
+      - name: Range units
+        type: table
+        col: 12
+        data:
+          columns: [item, percent, percentile]
+          rows:
+            - [P1, 20, 20]
+            - [P2, 10, 10]
+            - [P3, 200, 200]
+            - [P4, 30, 30]
+            - [P5, 40, 40]
+        columns:
+          - name: item
+
+          - name: percent
+            number: number
+            format:
+              - { backgroundColor: [red, white, green], range: [0, 50, 100], unit: percent }      # % of min→max
+
+          - name: percentile
+            number: number
+            format:
+              - { backgroundColor: [red, white, green], range: [0, 50, 100], unit: percentile }   # median = white
+
+  - widgets:
+      - name: Conditions
+        type: table
+        col: 12
+        data:
+          columns: [task, note, score, actual, target, due, owner]
+          rows:
+            - [T1, "URGENT fix", 92, 920, 1000, "2026-07-01", alice]
+            - [T2, "routine check", 45, 1100, 1000, "2026-07-20", ""]
+            - [T3, "urgent review", 68, 680, 900, "2026-08-01", bob]
+            - [T4, "cleanup", 30, 300, 500, "2026-07-22", ""]
+        columns:
+          - name: task
+
+          - name: note
+            format:
+              - { if: text_contains, value: urgent, backgroundColor: amber, bold: true }
+
+          - name: score
+            number: number
+            format:
+              - { if: greater_than_or_equal, value: 80, backgroundColor: green, textColor: white, bold: true }
+              - { if: is_between, value: [50, 79], backgroundColor: amber }
+              - { if: less_than, value: 50, backgroundColor: "#FEE2E2", textColor: red, strikethrough: true }
+
+          - name: actual
+            number: number
+            format:
+              - { if: less_than, value: { column: target }, backgroundColor: red }
+              - { if: greater_than, value: { column: target }, backgroundColor: green }
+
+          - name: target
+            number: number
+
+          - name: due
+            format:
+              - { if: date_before, value: "2026-07-22", backgroundColor: red, textColor: white, bold: true }
+              - { if: date_after, value: "2026-07-22", backgroundColor: green, textColor: white }
+
+          - name: owner
+            format:
+              - { if: is_empty, backgroundColor: "#F3F4F6", italic: true }
+
+  - widgets:
+      - name: Mirror & first match
+        type: table
+        col: 12
+        data:
+          columns: [status, amount, score]
+          rows:
+            - [overdue, 1200, 95]
+            - [closed, 4800, 60]
+            - [pending, 3100, 40]
+            - [overdue, 900, 88]
+        columns:
+          - name: status
+            format:
+              - { if: text_is_exactly, value: overdue, backgroundColor: red, bold: true }
+              - { backgroundColor: green }                                                # catch-all, last
+
+          - name: amount
+            number: currency
+            like: status                                                                  # mirror status per row
+
+          - name: score
+            number: number
+            format:
+              - { if: greater_than_or_equal, value: 90, backgroundColor: green, bold: true }
+              - { backgroundColor: [red, white, green], range: [0, 50, 100], unit: percent }

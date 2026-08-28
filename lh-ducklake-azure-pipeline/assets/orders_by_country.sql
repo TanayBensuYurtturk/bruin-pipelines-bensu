@@ -14,4 +14,4 @@ SELECT
   SUM(amount) AS total_amount
 FROM ducklake.orders
 GROUP BY country
-ORDER BY total_amount ASC, country;
+ORDER BY total_amount DESC, country;
