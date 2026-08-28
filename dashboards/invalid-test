@@ -1,0 +1,43 @@
+name: Bruin Pipeline Health
+theme: dark
+rows:
+  - widgets:
+      - name: Total Runs
+        type: metric
+  - widgets:
+      - name: Success Rate
+        type: metric
+        format: percent
+        column: success_rate
+      - name: Failures
+        type: metric
+        column: failures
+        format: number
+      - name: Duration
+        type: metric
+        format: seconds
+        suffix: s
+        column: duration
+      - name: Queue Depth
+        type: metric
+        format: number
+        suffix: ""
+        column: queued
+  - widgets:
+      - name: Runs Over Time
+        type: chart
+        x: created_at
+        y: [runs, failures]
+      - name: Latency
+        type: chart
+        x: created_at
+        y: [p50, p95]
+  - widgets:
+      - name: Throughput
+        type: chart
+        x: ts
+        y: [rows]
+      - name: Errors
+        type: chart
+        y: [errors]
+        x: ts
