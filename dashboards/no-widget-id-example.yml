@@ -1,0 +1,18 @@
+name: No Widget Id Example
+connection: gcp-default
+
+# Repro for the "widgets spin forever" bug: none of these widgets declare an
+# `id`. Validation/dac check pass, but the frontend fires POST /refresh keyed on
+# widget id, so id-less widgets never fetch and spin indefinitely.
+rows:
+  - widgets:
+      - name: Total
+        type: metric
+        col: 6
+        sql: |
+          SELECT 42 AS value
+      - name: Doubled
+        type: metric
+        col: 6
+        sql: |
+          SELECT 84 AS value

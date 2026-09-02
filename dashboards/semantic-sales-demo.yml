@@ -1,7 +1,7 @@
 name: Semantic Sales Demo
 description: Dashboard driven by the semantic/sales.yml model (no raw SQL in widgets)
 connection: gcp-default
-model: sales # semantic layer reference
+model: sales2 # semantic layer reference
 
 filters:
   - name: region
@@ -12,7 +12,7 @@ filters:
 
 queries:
   online_by_region:
-    model: sales
+    model: sales2
     dimensions:
       - name: region
     metrics: [revenue]
@@ -71,7 +71,7 @@ rows:
   - widgets:
       - name: Sales Breakdown
         type: table
-        model: sales
+        model: sales2
         dimensions:
           - name: region
           - name: channel

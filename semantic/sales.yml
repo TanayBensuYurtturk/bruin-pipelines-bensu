@@ -1,6 +1,6 @@
 schema: v1
-name: sales
-label: Sales
+name: sales2
+label: Sales2
 description: Semantic model over the sales table built by the semantic_demo pipeline
 source:
   table: bruin-playground-bensu.semantic_demo.sales
@@ -25,7 +25,7 @@ metrics:
       currency: USD
       decimals: 0
   - name: sales_count
-    label: Sales
+    label: Sales2
     expression: count(*)
   - name: unique_customers
     label: Customers
