@@ -1,0 +1,32 @@
+name: Win Rate
+description: A simple repo (DAC) dashboard example — sales win rate.
+connection: gcp-default
+
+rows:
+  - widgets:
+      - name: Win Rate
+        type: metric
+        col: 4
+        sql: |
+          SELECT 0.62 AS value
+        value: { field: value, type: number, format: ".0%" }
+      - name: Deals Won
+        type: metric
+        col: 4
+        sql: |
+          SELECT 148 AS value
+        value: { field: value, type: number, format: ",.0f" }
+      - name: Deals Lost
+        type: metric
+        col: 4
+        sql: |
+          SELECT 91 AS value
+        value: { field: value, type: number, format: ",.0f" }
+  - widgets:
+      - name: About
+        type: text
+        col: 12
+        content: |
+          # Win Rate
+
+          Sales **win rate** = deals won / (deals won + deals lost).
