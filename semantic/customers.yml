@@ -1,0 +1,33 @@
+schema: v1
+name: customers
+label: Customers
+description: Customer dimension model, joined from the orders semantic model.
+source:
+  table: bruin-playground-bensu.analytics.customers
+primary_key: id                              # join target (orders.customer_id -> customers.id)
+
+dimensions:
+  - name: id                                 # number + hidden key
+    label: Customer ID
+    type: number
+    hidden: true
+  - name: name                               # string
+    label: Name
+    type: string
+  - name: region                             # string
+    label: Region
+    description: Sales region of the customer
+    type: string
+  - name: is_eu                              # boolean derived via expression
+    label: EU Customer
+    type: boolean
+    expression: region = 'EU'
+
+metrics:
+  - name: customer_count                     # format: number
+    label: Customers
+    expression: count(distinct id)
+    format:
+      type: number
+
+

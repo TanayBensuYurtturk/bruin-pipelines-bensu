@@ -1,0 +1,79 @@
+schema: v1
+name: orders
+label: Orders
+description: Minimal semantic model touching each key once.
+source:
+  table: bruin-playground-bensu.analytics.orders
+primary_key: order_id
+
+joins:
+  - name: customers
+    model: customers
+    relationship: many_to_one
+    foreign_key: customer_id
+    target_key: id
+
+dimensions:
+  - name: order_id            # number + hidden + group
+    type: number
+    hidden: true
+    group: Keys
+  - name: status              # string + label + description
+    label: Status
+    description: Fulfilment status
+    type: string
+  - name: created_at          # time + granularities
+    label: Order Date
+    type: time
+    granularities:
+      day: timestamp_trunc(created_at, DAY)
+      month: timestamp_trunc(created_at, MONTH)
+  - name: is_high_value       # boolean + expression
+    type: boolean
+    expression: amount >= 300
+
+metrics:
+  - name: order_count         # expression + group + format.type
+    label: Orders
+    description: Total orders
+    expression: count(*)
+    group: Volume
+    format:
+      type: number
+  - name: gross_revenue       # format currency + decimals
+    label: Gross Revenue
+    expression: sum(amount)
+    format:
+      type: currency
+      currency: USD
+      decimals: 0
+  - name: avg_order_value     # metric-to-metric references
+    label: Avg Order Value
+    expression: "{gross_revenue} / {order_count}"
+  - name: completed_revenue   # filter + hidden
+    expression: sum(amount)
+    filter: "status = 'completed'"
+    hidden: true
+  - name: running_revenue     # window: type + order_by + partition_by
+    label: Running Revenue
+    expression: "{gross_revenue}"
+    window:
+      type: running_total
+      order_by: created_at
+      partition_by: [status]
+  - name: prev_revenue        # window: lag + offset
+    expression: "{gross_revenue}"
+    hidden: true
+    window:
+      type: lag
+      order_by: created_at
+      offset: 1
+
+segments:
+  - name: completed           # name + label + description + filter
+    label: Completed
+    description: Only fulfilled orders
+    filter: "status = 'completed'"
+  - name: high_value
+    label: High Value
+    filter: "amount >= 300"

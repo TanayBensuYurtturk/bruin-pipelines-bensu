@@ -1,0 +1,90 @@
+name: Orders Demo
+description: Dashboard driven by the semantic/orders.yml model (no raw SQL in widgets)
+connection: gcp-default
+model: orders # semantic layer reference
+
+filters:
+  - name: status
+    type: select
+    default: completed
+    options:
+      values: [completed, pending, cancelled]
+
+queries:
+  revenue_by_region: # cross-model: orders metric grouped by a joined customers dimension
+    model: orders
+    dimensions:
+      - name: customers.region
+    metrics: [gross_revenue]
+    sort:
+      - name: gross_revenue
+        direction: desc
+
+rows:
+  - widgets:
+      - name: Gross Revenue
+        type: metric
+        metric: gross_revenue
+        filters:
+          - dimension: status
+            operator: equals
+            value: "{{ filters.status }}"
+        value: { field: gross_revenue, type: number, format: "$,.0f" }
+        col: 4
+      - name: Orders
+        type: metric
+        metric: order_count
+        filters:
+          - dimension: status
+            operator: equals
+            value: "{{ filters.status }}"
+        value: { field: order_count, type: number, format: ",.0f" }
+        col: 4
+      - name: Avg Order Value
+        type: metric
+        metric: avg_order_value
+        value: { field: avg_order_value, type: number, format: "$,.2f" }
+        col: 4
+
+  - widgets:
+      - name: Revenue Trend
+        type: chart
+        chart: area
+        dimension: created_at
+        granularity: month
+        metrics: [gross_revenue]
+        sort:
+          - name: created_at
+            direction: asc
+        col: 8
+      - name: Revenue by Region
+        type: chart
+        chart: bar
+        query: revenue_by_region
+        col: 4
+
+  - widgets:
+      - name: Orders by Status & Region
+        type: table
+        model: orders
+        dimensions:
+          - name: status
+          - name: customers.region
+        metrics: [order_count, gross_revenue]
+        segments: [completed]
+        sort:
+          - name: gross_revenue
+            direction: desc
+        limit: 20
+        columns:
+          - name: status
+            label: Status
+          - name: customers.region
+            label: Region
+          - name: order_count
+            label: Orders
+            number: number
+          - name: gross_revenue
+            label: Revenue
+            number: currency
+        col: 12
