@@ -61,6 +61,8 @@ rows:
         type: chart
         chart: bar
         query: revenue_by_region
+        x: { field: customers_region, type: category } # joined dim is emitted as customers_region
+        y: { field: gross_revenue, type: number }
         col: 4
 
   - widgets:
@@ -79,7 +81,7 @@ rows:
         columns:
           - name: status
             label: Status
-          - name: customers.region
+          - name: customers_region
             label: Region
           - name: order_count
             label: Orders
