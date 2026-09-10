@@ -1,0 +1,75 @@
+schema: v1
+name: order_facts
+label: Order Facts
+description: Central fact model joined to seven dimensions — stress-tests the ER diagram.
+source:
+  table: bruin-playground-bensu.analytics.order_facts
+primary_key: fact_id
+
+joins:
+  - name: orders
+    model: orders
+    relationship: many_to_one
+    foreign_key: order_id
+    target_key: order_id
+  - name: customers
+    model: customers
+    relationship: many_to_one
+    foreign_key: customer_id
+    target_key: id
+  - name: products
+    model: products
+    relationship: many_to_one
+    foreign_key: product_id
+    target_key: id
+  - name: stores
+    model: stores
+    relationship: many_to_one
+    foreign_key: store_id
+    target_key: id
+  - name: employees
+    model: employees
+    relationship: many_to_one
+    foreign_key: employee_id
+    target_key: id
+  - name: campaigns
+    model: campaigns
+    relationship: many_to_one
+    foreign_key: campaign_id
+    target_key: id
+  - name: shipping_address
+    model: addresses
+    relationship: one_to_one
+    foreign_key: address_id
+    target_key: id
+
+dimensions:
+  - name: fact_id
+    type: number
+    hidden: true
+  - name: quantity
+    label: Quantity
+    type: number
+  - name: is_bulk
+    label: Bulk
+    type: boolean
+    expression: quantity >= 10
+
+metrics:
+  - name: line_count
+    label: Lines
+    expression: count(*)
+    format:
+      type: number
+  - name: total_amount
+    label: Total Amount
+    expression: sum(amount)
+    format:
+      type: currency
+      currency: USD
+      decimals: 0
+
+segments:
+  - name: bulk
+    label: Bulk Orders
+    filter: "quantity >= 10"
