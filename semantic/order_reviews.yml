@@ -1,0 +1,59 @@
+schema: v1
+name: order_reviews
+label: Order Reviews
+description: Customer reviews on orders — joins to both the orders and customers semantic models.
+source:
+  table: bruin-playground-bensu.analytics.order_reviews
+primary_key: review_id
+
+joins:
+  - name: orders                    # many reviews -> one order
+    model: orders
+    relationship: many_to_one
+    foreign_key: order_id
+    target_key: order_id
+  - name: customers                 # many reviews -> one customer
+    model: customers
+    relationship: many_to_one
+    foreign_key: customer_id
+    target_key: id
+
+dimensions:
+  - name: review_id
+    type: number
+    hidden: true
+  - name: rating
+    label: Rating
+    type: number
+  - name: created_at
+    label: Review Date
+    type: time
+    granularities:
+      day: timestamp_trunc(created_at, DAY)
+      month: timestamp_trunc(created_at, MONTH)
+  - name: is_positive
+    label: Positive
+    type: boolean
+    expression: rating >= 4
+
+metrics:
+  - name: review_count
+    label: Reviews
+    expression: count(*)
+    format:
+      type: number
+  - name: avg_rating
+    label: Avg Rating
+    expression: avg(rating)
+    format:
+      type: decimal
+      decimals: 2
+  - name: positive_reviews
+    label: Positive Reviews
+    expression: count(*)
+    filter: "rating >= 4"
+
+segments:
+  - name: five_star
+    label: Five Star
+    filter: "rating = 5"
