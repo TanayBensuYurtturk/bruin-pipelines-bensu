@@ -77,3 +77,27 @@ segments:
   - name: high_value
     label: High Value
     filter: "amount >= 300"
+  - name: completed_high_value      # multiple conditions with AND
+    label: Completed High Value
+    description: Fulfilled orders worth at least $300
+    filter: "status = 'completed' AND amount >= 300"
+  - name: active_orders             # IN list + NOT + range
+    label: Active Orders
+    description: Non-cancelled orders in a mid-range amount band
+    filter: "status IN ('completed', 'pending') AND status != 'cancelled' AND amount BETWEEN 50 AND 500"
+  - name: recent_or_large           # grouped OR across conditions
+    label: Recent or Large
+    description: Placed in the last 30 days, or any order over $400
+    filter: >-
+      (created_at >= timestamp_sub(current_timestamp(), interval 30 day))
+      OR (amount >= 400)
+  - name: notable_completed         # long multi-line predicate
+    label: Notable Completed
+    description: Completed orders that are either recent or high value, excluding tiny amounts
+    filter: >-
+      status = 'completed'
+      AND amount > 25
+      AND (
+        amount >= 300
+        OR created_at >= timestamp_sub(current_timestamp(), interval 7 day)
+      )
