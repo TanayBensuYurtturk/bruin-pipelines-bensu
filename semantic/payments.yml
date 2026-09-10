@@ -1,0 +1,81 @@
+schema: v1
+name: payments
+label: Payments
+description: Payment transactions — joins to the orders and customers semantic models.
+source:
+  table: bruin-playground-bensu.analytics.payments
+primary_key: payment_id
+
+joins:
+  - name: orders                    # many payments -> one order
+    model: orders
+    relationship: many_to_one
+    foreign_key: order_id
+    target_key: order_id
+  - name: customers                 # many payments -> one customer
+    model: customers
+    relationship: many_to_one
+    foreign_key: customer_id
+    target_key: id
+
+dimensions:
+  - name: payment_id
+    type: number
+    hidden: true
+  - name: method
+    label: Method
+    type: string
+  - name: status
+    label: Status
+    type: string
+  - name: paid_at
+    label: Paid At
+    type: time
+    granularities:
+      day: timestamp_trunc(paid_at, DAY)
+      month: timestamp_trunc(paid_at, MONTH)
+  - name: is_large
+    label: Large Payment
+    type: boolean
+    expression: amount >= 200
+
+metrics:
+  - name: total_paid
+    label: Total Paid
+    expression: sum(amount)
+    format:
+      type: currency
+      currency: USD
+      decimals: 0
+  - name: payment_count
+    label: Payments
+    expression: count(*)
+    format:
+      type: number
+  - name: successful_amount
+    label: Successful Amount
+    expression: sum(amount)
+    filter: "status = 'success'"
+    format:
+      type: currency
+      currency: USD
+  - name: success_rate
+    label: Success Rate
+    expression: "sum(case when status = 'success' then 1 else 0 end) / count(*)"
+    format:
+      type: percentage
+      decimals: 1
+  - name: avg_payment
+    label: Avg Payment
+    expression: "{total_paid} / {payment_count}"
+    format:
+      type: decimal
+      decimals: 2
+
+segments:
+  - name: successful
+    label: Successful
+    filter: "status = 'success'"
+  - name: card_payments
+    label: Card Payments
+    filter: "method = 'card'"

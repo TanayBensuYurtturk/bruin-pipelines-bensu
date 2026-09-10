@@ -1,0 +1,62 @@
+schema: v1
+name: customer_360
+label: Customer 360
+description: Per-customer overview — shows the different join cardinalities (1:1 to customers, 1:N to orders).
+source:
+  table: bruin-playground-bensu.analytics.customer_360
+primary_key: customer_id
+
+joins:
+  - name: customers                 # 1:1 — each row maps to exactly one customer
+    model: customers
+    relationship: one_to_one
+    foreign_key: customer_id
+    target_key: id
+  - name: orders                    # 1:N — one customer has many orders
+    model: orders
+    relationship: one_to_many
+    foreign_key: customer_id
+    target_key: customer_id
+
+dimensions:
+  - name: customer_id
+    type: number
+    hidden: true
+  - name: segment
+    label: Segment
+    type: string
+  - name: signup_date
+    label: Signup Date
+    type: time
+    granularities:
+      month: timestamp_trunc(signup_date, MONTH)
+  - name: is_active
+    label: Active
+    type: boolean
+    expression: lifetime_orders > 0
+
+metrics:
+  - name: customer_count
+    label: Customers
+    expression: count(distinct customer_id)
+    format:
+      type: number
+  - name: total_ltv
+    label: Total LTV
+    expression: sum(lifetime_value)
+    format:
+      type: currency
+      currency: USD
+      decimals: 0
+  - name: avg_ltv
+    label: Avg LTV
+    expression: "{total_ltv} / {customer_count}"
+    format:
+      type: currency
+      currency: USD
+      decimals: 2
+
+segments:
+  - name: high_ltv
+    label: High LTV
+    filter: "lifetime_value >= 1000"
