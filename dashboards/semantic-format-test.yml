@@ -1,0 +1,43 @@
+name: Semantic Format Test
+description: >-
+  Exercises BRU-6476 — chart widgets that inherit their number format from the
+  semantic model's metric `format` vs. one that overrides it with its own format.
+connection: gcp-default
+model: orders # semantic/orders.yml
+
+rows:
+  - widgets:
+      # gross_revenue defines format currency/USD/0 -> should render "$,.0f".
+      # No y.format here, so it inherits the semantic metric format.
+      - name: Gross revenue by status (inherits $,.0f)
+        type: chart
+        chart: bar
+        dimension: status
+        metrics: [gross_revenue]
+        col: 6
+
+      # Same metric, but the widget sets its own format -> widget wins ($ dropped).
+      - name: Gross revenue by status (widget overrides -> ,.0f)
+        type: chart
+        chart: bar
+        dimension: status
+        metrics: [gross_revenue]
+        y: { field: [gross_revenue], type: number, format: ",.0f" }
+        col: 6
+
+  - widgets:
+      # order_count defines format.type number -> should render ",.0f".
+      - name: Orders by status (inherits ,.0f)
+        type: chart
+        chart: bar
+        dimension: status
+        metrics: [order_count]
+        col: 6
+
+      # avg_order_value has no format in the model -> falls back to auto-compact.
+      - name: Avg order value by status (no semantic format)
+        type: chart
+        chart: bar
+        dimension: status
+        metrics: [avg_order_value]
+        col: 6
