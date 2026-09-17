@@ -32,7 +32,9 @@ notes:
   - id: region_note
     dimension:
       - name: region
+        optional: false
   - id: region_channel_note
     dimension:
       - name: region
       - name: channel
+        multiselect: true
