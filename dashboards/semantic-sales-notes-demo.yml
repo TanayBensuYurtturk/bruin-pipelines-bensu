@@ -1,0 +1,34 @@
+schema: https://getbruin.com/schemas/dac/dashboard/v1
+name: Semantic Sales Notes Demo
+description: Dashboard over sales_notes with reusable note definitions matched to rows.
+connection: gcp-default
+model: sales_notes
+
+notes:
+  - id: region_note
+    dimension:
+      - name: region
+  - id: region_channel_note
+    dimension:
+      - name: region
+      - name: channel
+
+rows:
+  - widgets:
+      - name: Revenue by region
+        type: table
+        model: sales_notes
+        dimensions:
+          - name: region
+        metrics: [revenue, sales_count]
+        notes: [region_note]
+        col: 6
+      - name: Revenue by region & channel
+        type: table
+        model: sales_notes
+        dimensions:
+          - name: region
+          - name: channel
+        metrics: [revenue]
+        notes: [region_note, region_channel_note]
+        col: 6

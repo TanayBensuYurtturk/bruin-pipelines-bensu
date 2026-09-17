@@ -1,0 +1,18 @@
+schema: v1
+name: invalid_notes
+label: Invalid Notes
+description: Intentionally invalid — a note is missing its required `id`.
+source:
+  table: bruin-playground-bensu.semantic_demo.sales
+
+dimensions:
+  - name: region
+    type: string
+
+metrics:
+  - name: revenue
+    expression: sum(amount)
+
+notes:
+  - dimension:
+      - name: region

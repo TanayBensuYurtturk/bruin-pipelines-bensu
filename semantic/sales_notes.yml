@@ -1,0 +1,38 @@
+schema: v1
+name: sales_notes
+label: Sales (with notes)
+description: Sales semantic model demonstrating reusable note definitions.
+source:
+  table: bruin-playground-bensu.semantic_demo.sales
+
+dimensions:
+  - name: created_at
+    type: time
+    granularities:
+      day: date_trunc(created_at, DAY)
+      month: date_trunc(created_at, MONTH)
+  - name: region
+    type: string
+  - name: channel
+    type: string
+
+metrics:
+  - name: revenue
+    label: Revenue
+    expression: sum(amount)
+    format:
+      type: currency
+      currency: USD
+      decimals: 0
+  - name: sales_count
+    label: Sales
+    expression: count(*)
+
+notes:
+  - id: region_note
+    dimension:
+      - name: region
+  - id: region_channel_note
+    dimension:
+      - name: region
+      - name: channel
