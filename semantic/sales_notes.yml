@@ -30,11 +30,11 @@ metrics:
 
 notes:
   - id: region_note
-    dimension:
+    dimensions:
       - name: region
         optional: false
   - id: region_channel_note
-    dimension:
+    dimensions:
       - name: region
       - name: channel
         multiselect: true
