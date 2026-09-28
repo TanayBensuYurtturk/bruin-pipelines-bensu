@@ -32,7 +32,7 @@ notes:
   - id: region_note
     dimensions:
       - name: region
-        optional: false
+        required: true
   - id: region_channel_note
     dimensions:
       - name: region
