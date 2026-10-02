@@ -37,5 +37,4 @@ notes:
     dimensions:
       - name: region
       - name: channel
-        required: true
         multiselect: true
