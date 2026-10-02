@@ -8,7 +8,7 @@ rows:
         type: metric
         col: 4
         sql: |
-          SELECT 0.62 AS value
+          SELECT 0.60 AS value
         value: { field: value, type: number, format: ".0%" }
       - name: Deals Won
         type: metric
