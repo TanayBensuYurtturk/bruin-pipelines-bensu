@@ -36,5 +36,7 @@ notes:
   - id: region_channel_note
     dimensions:
       - name: region
+      - name: amount
+        type: number
       - name: channel
         multiselect: true
