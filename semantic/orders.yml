@@ -6,6 +6,11 @@ source:
   table: bruin-playground-bensu.analytics.orders
 primary_key: order_id
 
+notes:
+  - id: orders_note
+    dimensions:
+      - name: status
+
 joins:
   - name: customers
     model: customers
