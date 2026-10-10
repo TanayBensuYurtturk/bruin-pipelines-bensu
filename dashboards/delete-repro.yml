@@ -1,0 +1,6 @@
+name: "Delete Test A/B"
+rows:
+  - widgets:
+      - name: Açıklama
+        type: text
+        content: "Silme testi"
