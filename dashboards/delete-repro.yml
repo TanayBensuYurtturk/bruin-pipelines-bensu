@@ -3,4 +3,4 @@ rows:
   - widgets:
       - name: Açıklama
         type: text
-        content: "Silme testi"
+        content: "Silme testii"
