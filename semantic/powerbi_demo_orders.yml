@@ -1,0 +1,75 @@
+# Imported from powerbi_demo (3).pbix.
+name: powerbi_demo_orders
+label: Power BI Demo Orders
+description: Order fact model imported from powerbi_demo (3).pbix. Keeps the Power
+  BI sums and many-to-one customer/product relationships.
+source:
+  table: bruin-playground-bensu.powerbi_demo.orders
+primary_key: order_id
+joins:
+- name: customers
+  model: powerbi_demo_customers
+  relationship: many_to_one
+  foreign_key: customer_id
+- name: products
+  model: powerbi_demo_products
+  relationship: many_to_one
+  foreign_key: product_id
+dimensions:
+- name: order_id
+  type: number
+  label: Order ID
+- name: order_date
+  type: time
+  granularities:
+    day: DATE_TRUNC(order_date, DAY)
+    month: DATE_TRUNC(order_date, MONTH)
+    quarter: DATE_TRUNC(order_date, QUARTER)
+    year: DATE_TRUNC(order_date, YEAR)
+- name: customer_id
+  type: string
+  label: Customer ID
+- name: product_id
+  type: string
+  label: Product ID
+- name: channel
+  type: string
+metrics:
+- name: order_count
+  label: Orders
+  expression: COUNT(DISTINCT order_id)
+  format:
+    type: number
+    decimals: 0
+- name: total_quantity
+  label: Sum of quantity
+  expression: SUM(quantity)
+  format:
+    type: number
+    decimals: 0
+- name: total_amount
+  label: Sum of amount
+  expression: SUM(amount)
+  format:
+    type: decimal
+    decimals: 2
+- name: total_unit_price
+  label: Sum of unit_price
+  description: Matches Power BI SUM(unit_price); this is a sum of unit prices, not
+    an average or quantity-weighted price.
+  expression: SUM(unit_price)
+  format:
+    type: decimal
+    decimals: 2
+- name: total_cost
+  label: Sum of cost
+  expression: SUM(cost)
+  format:
+    type: decimal
+    decimals: 2
+segments:
+- name: powerbi_ribbon_60_customers
+  label: Power BI ribbon series selection
+  description: Reproduces this demo report’s 60 displayed customer IDs (C0001–C0060).
+    Applies only when a query explicitly selects this segment.
+  filter: customer_id BETWEEN 'C0001' AND 'C0060'

@@ -1,0 +1,32 @@
+# Imported from powerbi_demo (3).pbix.
+name: powerbi_demo_products
+label: Power BI Demo Products
+description: Product dimension imported from powerbi_demo (3).pbix. One row per product.
+source:
+  table: bruin-playground-bensu.powerbi_demo.products
+primary_key: product_id
+dimensions:
+- name: product_id
+  type: string
+  label: Product ID
+- name: product_name
+  type: string
+  label: Product name
+- name: category
+  type: string
+- name: list_price
+  type: number
+  label: List price
+metrics:
+- name: product_count
+  label: Products
+  expression: COUNT(DISTINCT product_id)
+  format:
+    type: number
+    decimals: 0
+- name: total_list_price
+  label: Sum of list_price
+  expression: SUM(list_price)
+  format:
+    type: decimal
+    decimals: 2
