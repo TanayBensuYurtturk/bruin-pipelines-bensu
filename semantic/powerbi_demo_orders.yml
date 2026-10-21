@@ -1,7 +1,7 @@
-# Imported from powerbi_demo (3).pbix.
+# Verified against the Power BI API semantic-model definition (2026-10-21).
 name: powerbi_demo_orders
 label: Power BI Demo Orders
-description: Order fact model imported from powerbi_demo (3).pbix. Keeps the Power
+description: Order fact model read from the Power BI semantic-model API. Keeps the Power
   BI sums and many-to-one customer/product relationships.
 source:
   table: bruin-playground-bensu.powerbi_demo.orders
@@ -34,6 +34,14 @@ dimensions:
   label: Product ID
 - name: channel
   type: string
+- name: quantity
+  type: number
+- name: unit_price
+  type: number
+- name: amount
+  type: number
+- name: cost
+  type: number
 metrics:
 - name: order_count
   label: Orders

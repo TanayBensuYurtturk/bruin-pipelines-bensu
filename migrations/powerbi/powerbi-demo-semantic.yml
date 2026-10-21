@@ -1,0 +1,639 @@
+# Model and five-visual report definitions verified through Power BI APIs (2026-10-21).
+# Every widget queries powerbi_demo_orders; aggregations and joins live in semantic/.
+# Ribbon selection deliberately reproduces Power BI’s 60 displayed customer IDs.
+name: Power BI Demo — Semantic
+description: Customer orders, quantities, revenue, channels, and products.
+connection: gcp-default
+rows:
+- height: 580
+  widgets:
+  - id: customer-summary
+    name: Customer Summary
+    type: chart
+    col: 5
+    query: customer_summary
+    chart: vega-lite
+    description: Sorted by total quantity. Browse customer rows below; totals cover every customer.
+    spec:
+      data:
+        name: dac
+      spacing: 3
+      params:
+      - name: summary_start
+        value: 1
+        bind:
+          input: range
+          min: 1
+          max: 781
+          step: 1
+          name: 'First customer: '
+      vconcat:
+      - width: container
+        height: 26
+        transform:
+        - aggregate:
+          - op: count
+            as: row_count
+        layer:
+        - mark:
+            type: text
+            align: left
+            font: Segoe UI, Arial, sans-serif
+            fontSize: 11
+            color: '#252423'
+          encoding:
+            x:
+              value: 0
+            y:
+              value: 12
+            text:
+              value: customer_id
+        - mark:
+            type: text
+            align: right
+            font: Segoe UI, Arial, sans-serif
+            fontSize: 11
+            color: '#252423'
+          encoding:
+            x:
+              value:
+                expr: width * 0.55
+            y:
+              value: 12
+            text:
+              value: Sum of quantity
+        - mark:
+            type: text
+            align: right
+            font: Segoe UI, Arial, sans-serif
+            fontSize: 11
+            color: '#252423'
+          encoding:
+            x:
+              value:
+                expr: width - 2
+            y:
+              value: 12
+            text:
+              value: Sum of unit_price
+        - mark:
+            type: rule
+            color: '#252423'
+            strokeWidth: 1
+          encoding:
+            x:
+              value: 0
+            x2:
+              value:
+                expr: width
+            y:
+              value: 24
+      - width: container
+        height: 390
+        transform:
+        - window:
+          - op: row_number
+            as: customer_rank
+          sort:
+          - field: total_quantity
+            order: descending
+          - field: customer_id
+            order: ascending
+        - filter: datum.customer_rank >= summary_start && datum.customer_rank < summary_start + 18
+        encoding:
+          y:
+            field: customer_rank
+            type: ordinal
+            sort: ascending
+            axis: null
+            scale:
+              padding: 0.4
+        layer:
+        - mark:
+            type: text
+            align: left
+            font: Segoe UI, Arial, sans-serif
+            fontSize: 12
+            color: '#252423'
+          encoding:
+            x:
+              value: 0
+            text:
+              field: customer_id
+              type: nominal
+        - mark:
+            type: text
+            align: right
+            font: Segoe UI, Arial, sans-serif
+            fontSize: 12
+            color: '#252423'
+          encoding:
+            x:
+              value:
+                expr: width * 0.55
+            text:
+              field: total_quantity
+              type: quantitative
+              format: .0f
+        - mark:
+            type: text
+            align: right
+            font: Segoe UI, Arial, sans-serif
+            fontSize: 12
+            color: '#252423'
+          encoding:
+            x:
+              value:
+                expr: width - 2
+            text:
+              field: total_unit_price
+              type: quantitative
+              format: ',.2f'
+      - width: container
+        height: 26
+        transform:
+        - aggregate:
+          - op: sum
+            field: total_quantity
+            as: total_quantity
+          - op: sum
+            field: total_unit_price
+            as: total_unit_price
+        layer:
+        - mark:
+            type: text
+            align: left
+            font: Segoe UI, Arial, sans-serif
+            fontSize: 12
+            color: '#252423'
+            fontWeight: bold
+          encoding:
+            x:
+              value: 0
+            y:
+              value: 15
+            text:
+              value: Total
+        - mark:
+            type: text
+            align: right
+            font: Segoe UI, Arial, sans-serif
+            fontSize: 12
+            color: '#252423'
+            fontWeight: bold
+          encoding:
+            x:
+              value:
+                expr: width * 0.55
+            y:
+              value: 15
+            text:
+              field: total_quantity
+              type: quantitative
+              format: .0f
+        - mark:
+            type: text
+            align: right
+            font: Segoe UI, Arial, sans-serif
+            fontSize: 12
+            color: '#252423'
+            fontWeight: bold
+          encoding:
+            x:
+              value:
+                expr: width - 2
+            y:
+              value: 15
+            text:
+              field: total_unit_price
+              type: quantitative
+              format: ',.2f'
+        - mark:
+            type: rule
+            color: '#252423'
+            strokeWidth: 1
+          encoding:
+            x:
+              value: 0
+            x2:
+              value:
+                expr: width
+            y:
+              value: 0
+      config:
+        view:
+          stroke: null
+        axis:
+          domain: false
+          grid: false
+          ticks: false
+        font: Segoe UI, Arial, sans-serif
+      transform:
+      - calculate: 'isValid(datum.customers_customer_id) ? datum.customers_customer_id : datum["customers.customer_id"]'
+        as: customer_id
+  - id: quantity-by-channel
+    name: Sum of quantity by channel
+    type: chart
+    chart: vega-lite
+    col: 3
+    spec:
+      data:
+        name: dac
+      width: container
+      height: 440
+      autosize:
+        type: fit
+        contains: padding
+        resize: true
+      transform:
+      - joinaggregate:
+        - op: sum
+          field: total_quantity
+          as: total_quantity_all
+      - calculate: datum.total_quantity / datum.total_quantity_all
+        as: share
+      mark:
+        type: arc
+        tooltip: true
+      encoding:
+        theta:
+          field: total_quantity
+          type: quantitative
+        color:
+          field: channel
+          type: nominal
+          scale:
+            domain:
+            - Online
+            - Retail
+            - Partner
+            range:
+            - '#118DFF'
+            - '#12239E'
+            - '#E66C37'
+          legend:
+            title: channel
+            orient: bottom
+            direction: horizontal
+        order:
+          field: total_quantity
+          sort: descending
+        tooltip:
+        - field: channel
+          type: nominal
+          title: channel
+        - field: total_quantity
+          type: quantitative
+          title: Sum of quantity
+          format: ',.0f'
+        - field: share
+          type: quantitative
+          title: Share
+          format: .1%
+      config:
+        view:
+          stroke: null
+        legend:
+          labelFont: Segoe UI, Arial, sans-serif
+          titleFont: Segoe UI, Arial, sans-serif
+    query: channel_quantity
+  - id: quantity-by-product
+    name: Sum of quantity by product_id and category
+    type: chart
+    chart: vega-lite
+    col: 4
+    spec:
+      data:
+        name: dac
+      width: container
+      height: 440
+      autosize:
+        type: fit
+        contains: padding
+        resize: true
+      mark:
+        type: bar
+        tooltip: true
+      encoding:
+        x:
+          field: product_id
+          type: nominal
+          sort:
+            field: total_quantity
+            op: sum
+            order: descending
+          axis:
+            title: product_id
+            labelAngle: 0
+        y:
+          field: total_quantity
+          type: quantitative
+          aggregate: sum
+          stack: zero
+          axis:
+            title: Sum of quantity
+            format: ~s
+        color:
+          field: category
+          type: nominal
+          scale:
+            range:
+            - '#118DFF'
+            - '#12239E'
+            - '#E66C37'
+            - '#6B007B'
+          legend:
+            title: category
+            orient: top
+            direction: horizontal
+        tooltip:
+        - field: product_id
+          type: nominal
+          title: product_id
+        - field: category
+          type: nominal
+          title: category
+        - field: total_quantity
+          type: quantitative
+          aggregate: sum
+          title: Sum of quantity
+          format: ',.0f'
+      config:
+        view:
+          stroke: null
+        axis:
+          labelFont: Segoe UI, Arial, sans-serif
+          titleFont: Segoe UI, Arial, sans-serif
+      transform:
+      - calculate: 'isValid(datum.products_category) ? datum.products_category : datum["products.category"]'
+        as: category
+    query: product_quantity
+- height: 510
+  widgets:
+  - id: revenue-by-customer
+    name: Sum of amount
+    description: by customer_id — ranked by revenue; use the slider to browse all customers.
+    type: chart
+    chart: vega-lite
+    col: 5
+    spec:
+      data:
+        name: dac
+      width: container
+      height: 360
+      autosize:
+        type: fit
+        contains: padding
+        resize: true
+      params:
+      - name: first_customer
+        value: 1
+        bind:
+          input: range
+          min: 1
+          max: 781
+          step: 1
+          name: 'First customer: '
+      transform:
+      - calculate: 'isValid(datum.customers_customer_id) ? datum.customers_customer_id : datum["customers.customer_id"]'
+        as: customer_id
+      - window:
+        - op: row_number
+          as: customer_rank
+        sort:
+        - field: total_amount
+          order: descending
+        - field: customer_id
+          order: ascending
+      - filter: datum.customer_rank >= first_customer && datum.customer_rank < first_customer + 18
+      mark:
+        type: bar
+        color: '#118DFF'
+        tooltip: true
+      encoding:
+        y:
+          field: customer_id
+          type: nominal
+          sort:
+            field: customer_rank
+            order: ascending
+          axis:
+            title: null
+            labelFontSize: 12
+            labelPadding: 8
+            ticks: false
+        x:
+          field: total_amount
+          type: quantitative
+          scale:
+            zero: true
+          axis:
+            title: null
+            format: ~s
+            tickCount: 3
+        tooltip:
+        - field: customer_id
+          type: nominal
+          title: customer_id
+        - field: total_amount
+          type: quantitative
+          title: Sum of amount
+          format: ',.2f'
+      config:
+        view:
+          stroke: null
+        axis:
+          labelFont: Segoe UI, Arial, sans-serif
+          titleFont: Segoe UI, Arial, sans-serif
+    query: customer_revenue
+  - id: revenue-ribbons
+    name: Sum of amount by channel and customer_id
+    description: First 60 customer IDs, matching Power BI’s series limit. Hover for customer, revenue, and rank.
+    type: chart
+    chart: vega-lite
+    col: 4
+    spec:
+      data:
+        name: dac
+      width: container
+      height: 380
+      autosize:
+        type: fit
+        contains: padding
+        resize: true
+      encoding:
+        x:
+          field: channel
+          type: ordinal
+          sort:
+          - Partner
+          - Retail
+          - Online
+          axis:
+            title: channel
+            labelAngle: 0
+        y:
+          field: upper_amount
+          type: quantitative
+          scale:
+            zero: true
+          axis:
+            title: Sum of amount
+            format: ~s
+          stack: null
+        y2:
+          field: lower_amount
+        color:
+          field: customer_id
+          type: nominal
+          scale:
+            range:
+            - '#118DFF'
+            - '#12239E'
+            - '#E66C37'
+            - '#6B007B'
+            - '#E044A7'
+            - '#744EC2'
+            - '#D9B300'
+            - '#D64550'
+            - '#197278'
+            - '#1AAB40'
+            - '#15C6F4'
+            - '#4092FF'
+            - '#FFA058'
+            - '#BE5DC9'
+            - '#F472D0'
+            - '#B5A1FF'
+            - '#C4A200'
+            - '#FF8080'
+            - '#00DBBC'
+            - '#5BD667'
+            - '#0091D5'
+            - '#4668C5'
+            - '#FF6300'
+            - '#99008A'
+            - '#EC008C'
+            - '#533285'
+            - '#99700A'
+            - '#FF4141'
+            - '#1F9A85'
+            - '#25891C'
+            - '#0057A2'
+            - '#002050'
+          legend: null
+        detail:
+          field: customer_id
+          type: nominal
+        tooltip:
+        - field: customer_id
+          type: nominal
+          title: customer_id
+        - field: channel
+          type: nominal
+          title: channel
+        - field: total_amount
+          type: quantitative
+          title: Sum of amount
+          format: ',.2f'
+        - field: channel_rank
+          type: quantitative
+          title: Rank in channel
+          format: ',.0f'
+      layer:
+      - mark:
+          type: area
+          interpolate: monotone
+          opacity: 0.65
+      - mark:
+          type: bar
+          size: 54
+          opacity: 0.95
+      config:
+        view:
+          stroke: null
+        axis:
+          labelFont: Segoe UI, Arial, sans-serif
+          titleFont: Segoe UI, Arial, sans-serif
+      transform:
+      - impute: total_amount
+        key: channel
+        groupby:
+        - customer_id
+        value: 0
+      - window:
+        - op: row_number
+          as: channel_rank
+        groupby:
+        - channel
+        sort:
+        - field: total_amount
+          order: descending
+        - field: customer_id
+          order: ascending
+      - stack: total_amount
+        groupby:
+        - channel
+        sort:
+        - field: total_amount
+          order: ascending
+        - field: customer_id
+          order: descending
+        as:
+        - lower_amount
+        - upper_amount
+    query: customer_ribbons
+model: powerbi_demo_orders
+queries:
+  customer_summary:
+    dimensions:
+    - name: customers.customer_id
+    metrics:
+    - total_quantity
+    - total_unit_price
+    sort:
+    - name: total_quantity
+      direction: desc
+    - name: customers.customer_id
+      direction: asc
+  channel_quantity:
+    dimensions:
+    - name: channel
+    metrics:
+    - total_quantity
+    sort:
+    - name: total_quantity
+      direction: desc
+  product_quantity:
+    dimensions:
+    - name: product_id
+    - name: products.category
+    metrics:
+    - total_quantity
+    sort:
+    - name: total_quantity
+      direction: desc
+    - name: product_id
+      direction: asc
+  customer_revenue:
+    dimensions:
+    - name: customers.customer_id
+    metrics:
+    - total_amount
+    sort:
+    - name: total_amount
+      direction: desc
+    - name: customers.customer_id
+      direction: asc
+  customer_ribbons:
+    dimensions:
+    - name: channel
+    - name: customer_id
+    metrics:
+    - total_amount
+    segments:
+    - powerbi_ribbon_60_customers
+    sort:
+    - name: channel
+      direction: asc
+    - name: customer_id
+      direction: asc

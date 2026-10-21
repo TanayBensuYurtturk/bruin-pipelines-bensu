@@ -1,0 +1,79 @@
+{
+  "workspace_id": "f5788706-1571-446a-8dde-7866d26e7989",
+  "bruin_project_id": "01m3yfk6qz0ashgx53b6pdw17y",
+  "connection": "gcp-default",
+  "verified_at": "2026-10-21",
+  "reports": [
+    {
+      "source_name": "powerbi_demo",
+      "source_report_id": "786ab97f-597a-455a-b9a0-61ab5bd85045",
+      "source_model_id": "faac7673-d393-4229-a7e5-f6901b3c798f",
+      "status": "draft_updated_cloud_loading_unverified",
+      "models": [
+        "powerbi_demo_orders",
+        "powerbi_demo_customers",
+        "powerbi_demo_products"
+      ],
+      "definition": "migrations/powerbi/powerbi-demo-semantic.yml",
+      "cloud_dashboard_id": 1283,
+      "cloud_dashboard_url": "https://cloud.getbruin.com/bensutestxqpr9bn0/dashboards/1283?mode=edit",
+      "validation": [
+        {
+          "widget": "customer-summary",
+          "powerbi_rows": 798,
+          "bruin_rows": 798,
+          "matches": true,
+          "differences": []
+        },
+        {
+          "widget": "quantity-by-channel",
+          "powerbi_rows": 3,
+          "bruin_rows": 3,
+          "matches": true,
+          "differences": []
+        },
+        {
+          "widget": "quantity-by-product",
+          "powerbi_rows": 10,
+          "bruin_rows": 10,
+          "matches": true,
+          "differences": []
+        },
+        {
+          "widget": "revenue-by-customer",
+          "powerbi_rows": 798,
+          "bruin_rows": 798,
+          "matches": true,
+          "differences": []
+        },
+        {
+          "widget": "revenue-ribbons",
+          "powerbi_rows": 156,
+          "bruin_rows": 156,
+          "matches": true,
+          "differences": []
+        }
+      ],
+      "limitations": [
+        "Power BI cross-filter, cross-highlight, and drill interactions are not reproduced.",
+        "Auto date tables use source-date granularities; separate auto-date table identities are not preserved.",
+        "Ribbon is a Vega approximation constrained to the verified C0001-C0060 series.",
+        "Cloud catalog/query verification requires additional read/query token abilities."
+      ]
+    },
+    {
+      "source_name": "sales_report",
+      "source_report_id": "36a2ca38-df38-4627-864e-13dd8d2431dd",
+      "source_model_id": "50b8c0d6-2231-4432-ba7f-a0f114b0b149",
+      "status": "needs_source_mapping",
+      "reason": "Source is sales_sample.csv on SharePoint. Requires an existing warehouse table or an authorized Bruin SharePoint ingestion connection."
+    },
+    {
+      "source_name": "Getting Started in Power BI",
+      "source_report_id": "a3ef2faf-1f5d-44b0-bd2c-3f7de87e08b0",
+      "source_model_id": "6bf27781-f712-4764-b730-bc4f32271a70",
+      "status": "needs_embedded_data_import_and_feature_translation",
+      "reason": "Nine-page legacy training report with embedded tables, calculated tables/columns, dynamic label measures, maps, navigation buttons, and drill-through behavior. Definitions exported; no Cloud dashboard created."
+    }
+  ]
+}

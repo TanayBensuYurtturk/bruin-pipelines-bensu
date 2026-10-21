@@ -1,7 +1,7 @@
-# Imported from powerbi_demo (3).pbix.
+# Verified against the Power BI API semantic-model definition (2026-10-21).
 name: powerbi_demo_customers
 label: Power BI Demo Customers
-description: Customer dimension imported from powerbi_demo (3).pbix. One row per customer.
+description: Customer dimension read from the Power BI semantic-model API. One row per customer.
 source:
   table: bruin-playground-bensu.powerbi_demo.customers
 primary_key: customer_id

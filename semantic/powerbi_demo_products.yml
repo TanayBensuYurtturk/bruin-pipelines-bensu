@@ -1,7 +1,7 @@
-# Imported from powerbi_demo (3).pbix.
+# Verified against the Power BI API semantic-model definition (2026-10-21).
 name: powerbi_demo_products
 label: Power BI Demo Products
-description: Product dimension imported from powerbi_demo (3).pbix. One row per product.
+description: Product dimension read from the Power BI semantic-model API. One row per product.
 source:
   table: bruin-playground-bensu.powerbi_demo.products
 primary_key: product_id
