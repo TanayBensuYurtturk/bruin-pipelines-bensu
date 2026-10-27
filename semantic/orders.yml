@@ -1,7 +1,7 @@
 schema: v1
 name: orders
 label: Orders
-description: Orders model covering string, number, boolean, and time dimensions with reusable note scopes.
+description: Orders model covering string, number, boolean, and time dimensions.
 source:
   table: bruin-playground-bensu.analytics.orders
 primary_key: order_id
@@ -28,7 +28,7 @@ dimensions:
     type: number
   - name: created_at          # time + granularities
     label: Order Date
-    description: Order timestamp; date and date-range note inputs both reference this time dimension.
+    description: Order timestamp; notes can describe a single date or a date range on this dimension.
     type: time
     granularities:
       day: timestamp_trunc(created_at, DAY)
@@ -77,35 +77,6 @@ metrics:
       type: lag
       order_by: created_at
       offset: 1
-
-# Widgets can opt into these types with notes: [order_context, order_period].
-# Note input types describe how values are entered; model dimension types stay unchanged.
-notes:
-  - id: order_context
-    dimensions:
-      - name: status
-        type: select
-        multiselect: true
-      - name: amount
-        type: number
-        multiselect: true
-      - name: is_high_value
-        type: boolean
-      - name: created_at
-        type: date
-        multiselect: true
-      - name: customers.region
-        type: select
-        multiselect: true
-  - id: order_period
-    dimensions:
-      # One inclusive period, stored as {start: YYYY-MM-DD, end: YYYY-MM-DD}.
-      - name: created_at
-        type: date-range
-        required: true
-      - name: status
-        type: select
-        multiselect: true
 
 segments:
   - name: completed           # name + label + description + filter
