@@ -4,6 +4,7 @@ type: bq.sql
 description: Dashboard table with article rankings and previous-day changes. Missing comparisons stay null; views cover only the captured top list.
 depends:
   - wikipedia_attention.top_articles
+  - wikipedia_attention.article_topics
 materialization:
   type: table
   partition_by: view_date
@@ -18,12 +19,18 @@ WITH ranked AS (
         article,
         REPLACE(article, '_', ' ') AS article_title,
         CONCAT('https://', project, '/wiki/', article) AS article_url,
+        COALESCE(subjects.topic, 'Other') AS topic,
         ROW_NUMBER() OVER (
             PARTITION BY view_date, project ORDER BY views DESC, source_rank, article
         ) AS article_rank,
+        ROW_NUMBER() OVER (
+            PARTITION BY view_date, project, COALESCE(subjects.topic, 'Other')
+            ORDER BY views DESC, source_rank, article
+        ) AS topic_rank,
         views,
         fetched_at
     FROM wikipedia_attention.top_articles
+    LEFT JOIN wikipedia_attention.article_topics AS subjects USING (project, article)
     WHERE article NOT IN ('Main_Page', 'Anasayfa', 'Ana_Sayfa')
       AND NOT REGEXP_CONTAINS(article, r'^(Special|Wikipedia|Help|Portal|File|Category|Template|Talk|User|MediaWiki|Özel|Vikipedi|Yardım|Dosya|Kategori|Şablon|Tartışma|Kullanıcı|Modül|Module):')
 )
@@ -32,6 +39,7 @@ SELECT
     current_day.*,
     previous_day.views AS previous_day_views,
     previous_day.article_rank - current_day.article_rank AS rank_change,
+    previous_day.topic_rank - current_day.topic_rank AS topic_rank_change,
     ROUND(100.0 * SAFE_DIVIDE(
         current_day.views - previous_day.views, previous_day.views
     ), 2) AS views_change_pct,

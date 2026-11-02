@@ -1,0 +1,285 @@
+connection: gcp-default
+description: What people are reading on English and Turkish Wikipedia, and which articles are climbing.
+filters:
+- default: en.wikipedia.org
+  name: edition
+  options:
+    values:
+    - en.wikipedia.org
+    - tr.wikipedia.org
+  type: select
+- name: topic
+  type: select
+  default: All
+  options:
+    values:
+    - All
+    - People
+    - Movies & TV
+    - Sports
+    - Science
+    - Places
+    - Other
+- default: last_30_days
+  name: date_range
+  type: date-range
+name: Wikipedia Trends
+rows:
+- widgets:
+  - col: 12
+    content: |
+      ## What people are reading
+      Choose an edition and topic. Cards and rankings use the latest available reading date; the daily chart uses your full selected period.
+    id: introduction
+    name: Wikipedia reading trends
+    type: text
+- widgets:
+  - col: 4
+    id: tracked-views
+    name: Views in the latest list
+    type: metric
+    value:
+      field: value
+      format: .3s
+      type: number
+    sql: |
+      WITH selected AS (
+        SELECT * FROM `bruin-playground-bensu.wikipedia_attention.article_trends`
+        WHERE project = '{{ filters.edition }}'
+          AND view_date BETWEEN DATE('{{ filters.date_range.start }}') AND DATE('{{ filters.date_range.end }}')
+      )
+      SELECT COALESCE(SUM(views), 0) AS value FROM selected
+      WHERE view_date = (SELECT MAX(view_date) FROM selected)
+      {% if filters.topic != 'All' %}
+        AND topic = '{{ filters.topic }}'
+      {% endif %}
+  - col: 4
+    id: tracked-articles
+    name: Articles in the latest list
+    type: metric
+    value:
+      field: value
+      format: ',.0f'
+      type: number
+    sql: |
+      WITH selected AS (
+        SELECT * FROM `bruin-playground-bensu.wikipedia_attention.article_trends`
+        WHERE project = '{{ filters.edition }}'
+          AND view_date BETWEEN DATE('{{ filters.date_range.start }}') AND DATE('{{ filters.date_range.end }}')
+      )
+      SELECT COUNT(*) AS value FROM selected
+      WHERE view_date = (SELECT MAX(view_date) FROM selected)
+      {% if filters.topic != 'All' %}
+        AND topic = '{{ filters.topic }}'
+      {% endif %}
+  - col: 4
+    id: reading-date
+    name: Reading date (UTC)
+    type: metric
+    value:
+      field: value
+      format: '%d %b %Y'
+      type: date
+    sql: |
+      SELECT MAX(view_date) AS value
+      FROM `bruin-playground-bensu.wikipedia_attention.article_trends`
+      WHERE project = '{{ filters.edition }}'
+        AND view_date BETWEEN DATE('{{ filters.date_range.start }}') AND DATE('{{ filters.date_range.end }}')
+- height: 440
+  widgets:
+  - chart: bar
+    col: 12
+    description: Up to 10 articles from the latest reading date, ranked within your chosen topic. Full titles and
+      exact counts are in the table.
+    id: article-treemap
+    name: Most-read articles
+    type: chart
+    horizontal: true
+    x:
+      field: article_title
+      type: category
+      title: Article
+    y:
+      field:
+      - views
+      type: number
+      title: Views
+      format: .2s
+    sql: |
+      WITH selected AS (
+        SELECT * FROM `bruin-playground-bensu.wikipedia_attention.article_trends`
+        WHERE project = '{{ filters.edition }}'
+          AND view_date BETWEEN DATE('{{ filters.date_range.start }}') AND DATE('{{ filters.date_range.end }}')
+      )
+      SELECT view_date, IF('{{ filters.topic }}' = 'All', article_rank, topic_rank) AS article_rank,
+        article_title, article_url, topic, views,
+        IF('{{ filters.topic }}' = 'All', rank_change, topic_rank_change) AS rank_change, views_change_pct
+      FROM selected
+      WHERE view_date = (SELECT MAX(view_date) FROM selected)
+        {% if filters.topic != 'All' %}
+        AND topic = '{{ filters.topic }}'
+        {% endif %}
+      ORDER BY article_rank
+      LIMIT 10
+- height: 340
+  widgets:
+  - chart: bar
+    col: 6
+    description: Views of each day’s captured articles for your chosen edition and topic. List membership can change;
+      only dates with matching records appear.
+    id: daily-interest
+    name: Views by day
+    type: chart
+    x:
+      field: view_date
+      format: '%d %b'
+      title: Date
+      type: date
+    y:
+      field:
+      - tracked_views
+      format: .2s
+      title: Views
+      type: number
+    sql: |
+      SELECT view_date, SUM(views) AS tracked_views
+      FROM `bruin-playground-bensu.wikipedia_attention.article_trends`
+      WHERE project = '{{ filters.edition }}'
+        AND view_date BETWEEN DATE('{{ filters.date_range.start }}') AND DATE('{{ filters.date_range.end }}')
+        {% if filters.topic != 'All' %}
+        AND topic = '{{ filters.topic }}'
+        {% endif %}
+      GROUP BY view_date
+      ORDER BY view_date
+  - id: topic-mix
+    name: Views by topic · all topics
+    description: Latest reading date for the chosen edition. This chart always shows every topic, so you can compare
+      them before filtering.
+    type: chart
+    chart: bar
+    col: 6
+    horizontal: true
+    x:
+      field: topic
+      type: category
+      title: Topic
+    y:
+      field:
+      - views
+      type: number
+      title: Views
+      format: .2s
+    sql: |
+      WITH selected AS (
+        SELECT * FROM `bruin-playground-bensu.wikipedia_attention.article_trends`
+        WHERE project = '{{ filters.edition }}'
+          AND view_date BETWEEN DATE('{{ filters.date_range.start }}') AND DATE('{{ filters.date_range.end }}')
+      )
+      SELECT topic, COUNT(*) AS articles, SUM(views) AS views
+      FROM selected
+      WHERE view_date = (SELECT MAX(view_date) FROM selected)
+      GROUP BY topic
+      ORDER BY views DESC
+- height: 320
+  widgets:
+  - chart: bar
+    col: 12
+    description: Up to 5 articles with the largest rank gains since the previous UTC day, within your chosen topic.
+      Both days need a record.
+    horizontal: true
+    id: largest-climbers
+    name: Biggest climbers
+    type: chart
+    x:
+      field: article_title
+      title: Article
+      type: category
+    y:
+      field:
+      - rank_change
+      format: ',.0f'
+      title: Places gained
+      type: number
+    sql: |
+      WITH selected AS (
+        SELECT * FROM `bruin-playground-bensu.wikipedia_attention.article_trends`
+        WHERE project = '{{ filters.edition }}'
+          AND view_date BETWEEN DATE('{{ filters.date_range.start }}') AND DATE('{{ filters.date_range.end }}')
+      )
+      SELECT article_title, article_url, topic,
+        IF('{{ filters.topic }}' = 'All', rank_change, topic_rank_change) AS rank_change, views, views_change_pct
+      FROM selected
+      WHERE view_date = (SELECT MAX(view_date) FROM selected)
+        {% if filters.topic != 'All' %}
+        AND topic = '{{ filters.topic }}'
+        {% endif %}
+      AND IF('{{ filters.topic }}' = 'All', rank_change, topic_rank_change) > 0
+      ORDER BY rank_change DESC, views DESC, article_title
+      LIMIT 5
+- height: 520
+  widgets:
+  - col: 12
+    columns:
+    - label: '#'
+      name: article_rank
+      number: .0f
+    - label: Article
+      name: article_title
+    - name: topic
+      label: Topic
+    - label: Views
+      name: views
+      number: ',.0f'
+    - format:
+      - bold: true
+        if: greater_than
+        textColor: green
+        value: 0
+      - if: less_than
+        textColor: red
+        value: 0
+      label: Rank change
+      name: rank_change
+      number: +,.0f
+    - format:
+      - if: greater_than
+        textColor: green
+        value: 0
+      - if: less_than
+        textColor: red
+        value: 0
+      label: Views change (%)
+      name: views_change_pct
+      number: +,.1f
+    - label: Wikipedia URL
+      name: article_url
+    id: top-articles
+    name: Article details
+    type: table
+    description: Up to 20 matching articles. Rank follows your topic selection; positive changes mean an article
+      climbed. Scroll right for Wikipedia URLs.
+    sql: |
+      WITH selected AS (
+        SELECT * FROM `bruin-playground-bensu.wikipedia_attention.article_trends`
+        WHERE project = '{{ filters.edition }}'
+          AND view_date BETWEEN DATE('{{ filters.date_range.start }}') AND DATE('{{ filters.date_range.end }}')
+      )
+      SELECT view_date, IF('{{ filters.topic }}' = 'All', article_rank, topic_rank) AS article_rank,
+        article_title, article_url, topic, views,
+        IF('{{ filters.topic }}' = 'All', rank_change, topic_rank_change) AS rank_change, views_change_pct
+      FROM selected
+      WHERE view_date = (SELECT MAX(view_date) FROM selected)
+        {% if filters.topic != 'All' %}
+        AND topic = '{{ filters.topic }}'
+        {% endif %}
+      ORDER BY article_rank
+      LIMIT 20
+- widgets:
+  - col: 12
+    content: |
+      **Source:** Wikimedia daily pageviews (UTC). Totals cover the captured ranked list, not all Wikipedia traffic. Missing dates and unavailable previous-day changes remain gaps.
+
+      **Topics:** Broad groups inferred from Wikidata. Biographies, including athletes and scientists, are People. Other means no matching group was found. Language editions do not identify readers’ countries.
+    id: data-notes
+    name: About this data
+    type: text
