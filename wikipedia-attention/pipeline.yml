@@ -1,0 +1,7 @@
+name: wikipedia_attention
+schedule: "0 6 * * *"
+start_date: "2026-10-03"
+catchup: false
+retries: 2
+default_connections:
+  google_cloud_platform: gcp-default
