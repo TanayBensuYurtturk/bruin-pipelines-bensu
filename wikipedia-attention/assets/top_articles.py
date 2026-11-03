@@ -28,11 +28,21 @@ import pandas as pd
 def materialize():
     day = date.fromisoformat(os.environ["BRUIN_START_DATE"][:10])
     end = date.fromisoformat(os.environ["BRUIN_END_DATE"][:10])
-    if not date(2015, 7, 1) <= day <= end < datetime.now(timezone.utc).date():
-        raise ValueError("Choose completed UTC days, starting on or after 2015-07-01.")
+    fetched_at = datetime.now(timezone.utc)
+    if not date(2015, 7, 1) <= day <= end:
+        raise ValueError(f"Invalid date range {day} to {end}; dates must start on or after 2015-07-01.")
+
+    # Cloud's 06:00 schedule ends its interval today; today's rankings are incomplete.
+    latest_complete_day = fetched_at.date() - timedelta(days=1)
+    if end > latest_complete_day:
+        print(f"Limiting end date from {end} to completed UTC day {latest_complete_day}.", flush=True)
+        end = latest_complete_day
+    if day > end:
+        raise ValueError(
+            f"No completed UTC days in the requested range; choose a start date on or before {end}."
+        )
 
     rows = []
-    fetched_at = datetime.now(timezone.utc)
     while day <= end:
         daily_rows = []
         for project in ("en.wikipedia.org", "tr.wikipedia.org"):
