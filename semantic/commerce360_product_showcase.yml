@@ -1,0 +1,65 @@
+schema: v1
+name: commerce360_product_showcase
+label: Commerce 360 Product Showcase
+description: >-
+  One row per product, with the latest 30 loaded days of performance and the
+  preceding 30 days for comparison. This fixed-window view has no date dimension;
+  use commerce360_sales for interactive date/geography/channel filtering.
+  trend_30d is JSON text containing ordered {date, revenue} points for a sparkline
+  column with x.field=date and y.field=revenue. image_url is an image column.
+source:
+  table: bruin-playground-bensu.commerce360_demo.product_showcase
+primary_key: product_id
+
+dimensions:
+  - { name: product_id, label: Product ID, type: number }
+  - { name: product_name, label: Product, type: string }
+  - { name: category, type: string }
+  - { name: image_url, label: Product Image, type: string, group: Images }
+  - { name: image_alt, label: Image Alt Text, type: string, group: Images }
+  - { name: image_caption, label: Image Caption, type: string, group: Images }
+  - name: trend_30d
+    label: Revenue Trend (30 Days)
+    type: string
+    description: JSON array of {date, revenue} objects; render as a sparkline, not plain text.
+  - { name: inventory_status, label: Inventory Status, type: string }
+  - { name: stock_units, label: Stock Units, type: number }
+  - { name: rating, label: Rating, type: number }
+  - { name: featured, label: Featured Product, type: boolean }
+
+metrics:
+  - name: revenue
+    label: Revenue (30 Days)
+    expression: SUM(revenue)
+    format: { type: currency, currency: USD, decimals: 2 }
+  - name: previous_revenue
+    label: Revenue (Previous 30 Days)
+    expression: SUM(previous_revenue)
+    format: { type: currency, currency: USD, decimals: 2 }
+  - name: profit
+    label: Profit (30 Days)
+    expression: SUM(profit)
+    format: { type: currency, currency: USD, decimals: 2 }
+  - name: orders
+    label: Orders (30 Days)
+    expression: SUM(orders)
+    format: { type: number, decimals: 0 }
+  - name: sessions
+    label: Sessions (30 Days)
+    expression: SUM(sessions)
+    format: { type: number, decimals: 0 }
+  - name: margin
+    label: Profit Margin
+    expression: SAFE_DIVIDE({profit}, {revenue})
+    format: { type: percentage, decimals: 1 }
+  - name: conversion_rate
+    label: Conversion Rate
+    expression: SAFE_DIVIDE({orders}, {sessions})
+    format: { type: percentage, decimals: 2 }
+  - name: revenue_change
+    label: Revenue Change vs Previous 30 Days
+    expression: SAFE_DIVIDE({revenue} - {previous_revenue}, {previous_revenue})
+    format: { type: percentage, decimals: 1 }
+
+segments:
+  - { name: featured_products, label: Featured Products, filter: featured = TRUE }

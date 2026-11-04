@@ -1,0 +1,48 @@
+schema: v1
+name: commerce360_experiments
+label: Commerce 360 Experiments
+description: >-
+  Six synthetic experiment estimates with 95% confidence intervals. Group by
+  experiment and cohort for forest/error-bar charts. Effects are converted from
+  percentage-point source values to fractions for percentage formatting.
+  Aggregating estimates across experiments is an unweighted descriptive average,
+  not a pooled estimate or a new significance test.
+source:
+  table: bruin-playground-bensu.commerce360_demo.experiment_results
+primary_key: experiment
+
+dimensions:
+  - { name: experiment, label: Experiment, type: string }
+  - { name: cohort, label: Cohort, type: string }
+  - { name: sample_size, label: Sample Size, type: number }
+  - { name: significant, label: Statistically Significant, type: boolean }
+
+metrics:
+  - name: experiment_count
+    label: Experiments
+    expression: COUNT(DISTINCT experiment)
+    format: { type: number, decimals: 0 }
+  - name: participants
+    label: Experiment Participations
+    description: Sum of per-experiment sample sizes, not distinct people across experiments.
+    expression: SUM(sample_size)
+    format: { type: number, decimals: 0 }
+  - name: effect
+    label: Effect
+    expression: AVG(effect_pct) / 100.0
+    format: { type: percentage, decimals: 2 }
+  - name: standard_error
+    label: Standard Error
+    expression: AVG(standard_error_pct) / 100.0
+    format: { type: percentage, decimals: 2 }
+  - name: ci_lower
+    label: 95% CI Lower Bound
+    expression: AVG(ci_lower) / 100.0
+    format: { type: percentage, decimals: 2 }
+  - name: ci_upper
+    label: 95% CI Upper Bound
+    expression: AVG(ci_upper) / 100.0
+    format: { type: percentage, decimals: 2 }
+
+segments:
+  - { name: significant_experiments, label: Significant Experiments, filter: significant = TRUE }

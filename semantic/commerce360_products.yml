@@ -1,0 +1,45 @@
+schema: v1
+name: commerce360_products
+label: Commerce 360 Products
+description: >-
+  One row per fictional product. HTTPS photographs are illustrative. Select
+  image_url, product_name, image_caption, and image_alt for image widgets.
+source:
+  table: bruin-playground-bensu.commerce360_demo.products
+primary_key: product_id
+
+dimensions:
+  - { name: product_id, label: Product ID, type: number }
+  - { name: product_name, label: Product, type: string }
+  - { name: category, type: string }
+  - { name: image_url, label: Product Image, type: string, group: Images }
+  - { name: image_alt, label: Image Alt Text, type: string, group: Images }
+  - { name: image_caption, label: Image Caption, type: string, group: Images }
+  - { name: inventory_status, label: Inventory Status, type: string }
+  - { name: stock_units, label: Stock Units, type: number }
+  - { name: list_price, label: List Price, type: number }
+  - { name: unit_cost, label: Unit Cost, type: number }
+  - { name: rating, label: Rating, type: number }
+  - { name: featured, label: Featured Product, type: boolean }
+
+metrics:
+  - name: product_count
+    label: Products
+    expression: COUNT(DISTINCT product_id)
+    format: { type: number, decimals: 0 }
+  - name: total_stock_units
+    label: Stock Units
+    expression: SUM(stock_units)
+    format: { type: number, decimals: 0 }
+  - name: average_list_price
+    label: Average List Price
+    expression: AVG(list_price)
+    format: { type: currency, currency: USD, decimals: 2 }
+  - name: average_rating
+    label: Average Rating
+    expression: AVG(rating)
+    format: { type: decimal, decimals: 1 }
+
+segments:
+  - { name: featured_products, label: Featured Products, filter: featured = TRUE }
+  - { name: low_stock, label: Low Stock, filter: "inventory_status = 'Low stock'" }
