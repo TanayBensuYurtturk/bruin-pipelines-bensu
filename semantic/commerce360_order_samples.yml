@@ -1,0 +1,91 @@
+schema: v1
+name: commerce360_order_samples
+label: Commerce 360 Sample Orders
+description: >-
+  12,000 deterministic representative sample orders for detail tables,
+  distributions, and operational comparisons. Counts, customers, and revenue in
+  this model describe the sample only. Use commerce360_sales for business totals.
+source:
+  table: bruin-playground-bensu.commerce360_demo.order_samples
+primary_key: order_id
+
+joins:
+  - name: products
+    model: commerce360_products
+    relationship: many_to_one
+    foreign_key: product_id
+
+dimensions:
+  - { name: order_id, label: Sample Order ID, type: string }
+  - { name: customer_id, label: Sample Customer ID, type: string }
+  - name: date
+    label: Order Date
+    type: time
+    granularities:
+      day: DATE_TRUNC(date, DAY)
+      week: DATE_TRUNC(date, WEEK(MONDAY))
+      month: DATE_TRUNC(date, MONTH)
+      quarter: DATE_TRUNC(date, QUARTER)
+      year: DATE_TRUNC(date, YEAR)
+  - { name: product_id, label: Product ID, type: number }
+  - { name: product_name, label: Product, type: string }
+  - { name: category, type: string }
+  - { name: region, type: string }
+  - { name: country, type: string }
+  - { name: channel, type: string }
+  - { name: segment, label: Customer Segment, type: string }
+  - { name: status, label: Order Status, type: string }
+  - { name: order_value, label: Sample Order Value, type: number }
+  - { name: delivery_days, label: Delivery Days, type: number }
+  - { name: satisfaction_score, label: Satisfaction Score, type: number }
+  - { name: used_discount, label: Used Discount, type: boolean }
+
+metrics:
+  - name: sample_order_count
+    label: Sample Orders
+    expression: COUNT(*)
+    format: { type: number, decimals: 0 }
+  - name: sample_customers
+    label: Distinct Sample Customers
+    expression: COUNT(DISTINCT customer_id)
+    format: { type: number, decimals: 0 }
+  - name: sample_revenue
+    label: Sample Revenue
+    expression: SUM(order_value)
+    format: { type: currency, currency: USD, decimals: 2 }
+  - name: average_order_value
+    label: Average Sample Order Value
+    expression: SAFE_DIVIDE({sample_revenue}, {sample_order_count})
+    format: { type: currency, currency: USD, decimals: 2 }
+  - name: minimum_order_value
+    label: Minimum Sample Order Value
+    expression: MIN(order_value)
+    format: { type: currency, currency: USD, decimals: 2 }
+  - name: first_quartile_order_value
+    label: Sample Order Value Q1
+    expression: APPROX_QUANTILES(order_value, 100)[OFFSET(25)]
+    format: { type: currency, currency: USD, decimals: 2 }
+  - name: median_order_value
+    label: Median Sample Order Value
+    expression: APPROX_QUANTILES(order_value, 100)[OFFSET(50)]
+    format: { type: currency, currency: USD, decimals: 2 }
+  - name: third_quartile_order_value
+    label: Sample Order Value Q3
+    expression: APPROX_QUANTILES(order_value, 100)[OFFSET(75)]
+    format: { type: currency, currency: USD, decimals: 2 }
+  - name: maximum_order_value
+    label: Maximum Sample Order Value
+    expression: MAX(order_value)
+    format: { type: currency, currency: USD, decimals: 2 }
+  - name: average_delivery_days
+    label: Average Sample Delivery Days
+    expression: AVG(delivery_days)
+    format: { type: decimal, decimals: 1 }
+  - name: average_satisfaction
+    label: Average Sample Satisfaction
+    expression: AVG(satisfaction_score)
+    format: { type: decimal, decimals: 2 }
+
+segments:
+  - { name: delivered, label: Delivered Sample Orders, filter: "status = 'Delivered'" }
+  - { name: discounted, label: Discounted Sample Orders, filter: used_discount = TRUE }

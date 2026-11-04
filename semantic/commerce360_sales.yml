@@ -1,0 +1,185 @@
+schema: v1
+name: commerce360_sales
+label: Commerce 360 Sales
+description: >-
+  Synthetic daily sales at date/product/country/channel/segment grain. Use this
+  model for business totals. Currency is USD; rates are ratios of aggregate sums.
+  New customers are simulated acquisitions, not distinct active customers.
+source:
+  table: bruin-playground-bensu.commerce360_demo.daily_metrics
+
+joins:
+  - name: products
+    model: commerce360_products
+    relationship: many_to_one
+    foreign_key: product_id
+
+dimensions:
+  - name: date
+    label: Date
+    type: time
+    granularities:
+      day: DATE_TRUNC(date, DAY)
+      week: DATE_TRUNC(date, WEEK(MONDAY))
+      month: DATE_TRUNC(date, MONTH)
+      quarter: DATE_TRUNC(date, QUARTER)
+      year: DATE_TRUNC(date, YEAR)
+  - { name: product_id, label: Product ID, type: number, group: Product }
+  - { name: product_name, label: Product, type: string, group: Product }
+  - { name: category, type: string, group: Product }
+  - { name: region, type: string, group: Geography }
+  - { name: country, type: string, group: Geography }
+  - { name: country_code, label: Country Code, type: string, group: Geography }
+  - { name: channel, type: string, group: Customer }
+  - { name: segment, label: Customer Segment, type: string, group: Customer }
+  - name: is_weekend
+    label: Weekend
+    type: boolean
+    expression: EXTRACT(DAYOFWEEK FROM date) IN (1, 7)
+
+metrics:
+  - name: revenue
+    label: Revenue
+    expression: SUM(revenue)
+    group: Financials
+    format: { type: currency, currency: USD, decimals: 2 }
+  - name: net_revenue
+    label: Net Revenue
+    expression: SUM(net_revenue)
+    group: Financials
+    format: { type: currency, currency: USD, decimals: 2 }
+  - name: cost
+    label: Product Cost
+    expression: SUM(cost)
+    group: Financials
+    format: { type: currency, currency: USD, decimals: 2 }
+  - name: refunds
+    label: Refunds
+    expression: SUM(refunds)
+    group: Financials
+    format: { type: currency, currency: USD, decimals: 2 }
+  - name: ad_spend
+    label: Advertising Spend
+    expression: SUM(ad_spend)
+    group: Financials
+    format: { type: currency, currency: USD, decimals: 2 }
+  - name: profit
+    label: Profit
+    description: Revenue less product cost, refunds, and advertising spend.
+    expression: SUM(profit)
+    group: Financials
+    format: { type: currency, currency: USD, decimals: 2 }
+  - name: target_revenue
+    label: Revenue Target
+    expression: SUM(target_revenue)
+    group: Financials
+    format: { type: currency, currency: USD, decimals: 2 }
+  - name: orders
+    label: Orders
+    expression: SUM(orders)
+    group: Volume
+    format: { type: number, decimals: 0 }
+  - name: units
+    label: Units Sold
+    expression: SUM(units)
+    group: Volume
+    format: { type: number, decimals: 0 }
+  - name: new_customers
+    label: New Customers
+    expression: SUM(new_customers)
+    group: Volume
+    format: { type: number, decimals: 0 }
+  - name: returned_orders
+    label: Returned Orders
+    expression: SUM(returned_orders)
+    group: Volume
+    format: { type: number, decimals: 0 }
+  - name: sessions
+    label: Sessions
+    expression: SUM(sessions)
+    group: Funnel
+    format: { type: number, decimals: 0 }
+  - name: product_views
+    label: Product Views
+    expression: SUM(product_views)
+    group: Funnel
+    format: { type: number, decimals: 0 }
+  - name: add_to_carts
+    label: Add to Carts
+    expression: SUM(add_to_carts)
+    group: Funnel
+    format: { type: number, decimals: 0 }
+  - name: checkouts
+    label: Checkouts
+    expression: SUM(checkouts)
+    group: Funnel
+    format: { type: number, decimals: 0 }
+  - name: average_order_value
+    label: Average Order Value
+    expression: SAFE_DIVIDE({revenue}, {orders})
+    group: Rates
+    format: { type: currency, currency: USD, decimals: 2 }
+  - name: conversion_rate
+    label: Conversion Rate
+    expression: SAFE_DIVIDE({orders}, {sessions})
+    group: Rates
+    format: { type: percentage, decimals: 2 }
+  - name: margin
+    label: Profit Margin
+    expression: SAFE_DIVIDE({profit}, {revenue})
+    group: Rates
+    format: { type: percentage, decimals: 1 }
+  - name: return_rate
+    label: Return Rate
+    expression: SAFE_DIVIDE({returned_orders}, {orders})
+    group: Rates
+    format: { type: percentage, decimals: 2 }
+  - name: target_attainment
+    label: Revenue Target Attainment
+    expression: SAFE_DIVIDE({revenue}, {target_revenue})
+    group: Rates
+    format: { type: percentage, decimals: 1 }
+  - name: weighted_delivery_days
+    expression: SUM(delivery_days * orders)
+    hidden: true
+  - name: average_delivery_days
+    label: Average Delivery Days
+    description: Weighted by orders rather than averaging daily slice averages.
+    expression: SAFE_DIVIDE({weighted_delivery_days}, {orders})
+    group: Operations
+    format: { type: decimal, decimals: 1 }
+  - name: weighted_satisfaction
+    expression: SUM(satisfaction_score * orders)
+    hidden: true
+  - name: average_satisfaction
+    label: Average Satisfaction
+    description: Order-weighted synthetic score on a five-point scale.
+    expression: SAFE_DIVIDE({weighted_satisfaction}, {orders})
+    group: Operations
+    format: { type: decimal, decimals: 2 }
+  - name: running_revenue
+    label: Running Revenue
+    description: Use with date as a selected time dimension.
+    expression: "{revenue}"
+    window: { type: running_total, order_by: date }
+    group: Trends
+    format: { type: currency, currency: USD, decimals: 2 }
+  - name: previous_revenue
+    label: Previous Period Revenue
+    description: Previous selected date bucket; use with date as a dimension.
+    expression: "{revenue}"
+    window: { type: lag, order_by: date, offset: 1 }
+    group: Trends
+    format: { type: currency, currency: USD, decimals: 2 }
+  - name: revenue_change
+    label: Revenue Change
+    description: Relative change from the previous selected date bucket.
+    expression: SAFE_DIVIDE({revenue} - {previous_revenue}, {previous_revenue})
+    group: Trends
+    format: { type: percentage, decimals: 1 }
+
+segments:
+  - { name: paid_channels, label: Paid Channels, filter: "channel IN ('Paid Search', 'Social')" }
+  - { name: vip, label: VIP Customers, filter: "segment = 'VIP'" }
+  - { name: new_customer_sales, label: New Customer Sales, filter: "segment = 'New'" }
+  - { name: europe, label: Europe, filter: "region = 'Europe'" }
