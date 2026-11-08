@@ -1,0 +1,39 @@
+schema: v1
+name: commerce_orders
+label: Commerce orders
+description: Stored sample orders for semantic-note tests. Sampled revenue differs from the daily_metrics sales aggregate.
+source:
+  connection: gcp-default
+  table: bruin-playground-bensu.commerce360_demo.order_samples
+dimensions:
+  - name: date
+    type: time
+    granularities:
+      day: DATE_TRUNC(date, DAY)
+      week: DATE_TRUNC(date, WEEK(MONDAY))
+      month: DATE_TRUNC(date, MONTH)
+      quarter: DATE_TRUNC(date, QUARTER)
+      year: DATE_TRUNC(date, YEAR)
+  - name: region
+    type: string
+  - name: channel
+    type: string
+  - name: category
+    type: string
+  - name: segment
+    type: string
+  - name: status
+    type: string
+  - name: used_discount
+    type: boolean
+  - name: product_id
+    type: number
+metrics:
+  - name: revenue
+    expression: SUM(order_value)
+  - name: orders
+    expression: COUNT(*)
+  - name: average_order
+    expression: AVG(order_value)
+  - name: delivery_days
+    expression: AVG(delivery_days)
