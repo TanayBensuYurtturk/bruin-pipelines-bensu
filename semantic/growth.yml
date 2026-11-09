@@ -3,16 +3,16 @@
 name: growth
 label: Growth
 description: SQL-backed conversion of the supplied Growth Dashboard. Select exactly one calculation segment and
-  pass the dashboard filters as template parameters. Group detail queries by breakdown_1, breakdown_2, total_row_style
+  pass the dashboard filters as template parameters. Group detail queries by day, breakdown_1, breakdown_2, total_row_style
   and _result_row. Metrics project values already calculated at this grain; do not regroup them into other grains.
   Change filters.breakdown to calculate another breakdown. Raw filters, weighted ratios, Hidden Object forecasts,
   maturity rules, totals, formatting and sparklines are evaluated in the source before semantic projection.
 source:
-  connection: agave-data
+  connection: gcp-default
   table: |-
     (
     WITH growth_source AS (
-      SELECT * FROM `agave-data.adjust.breakdowns_predicted`
+      SELECT * FROM `bruin-playground-bensu.growth_demo.breakdowns_predicted_mock`
     ),
     growth_charts_result AS (
       WITH original_result AS (
@@ -3093,6 +3093,17 @@ source:
     FROM summary_metrics_result
     )
 dimensions:
+- name: day
+  type: time
+  label: Day
+  description: Stable date identity for notes on Day breakdowns. Other breakdowns and totals return NULL.
+  expression: >-
+    CASE WHEN '{{ filters.breakdown }}' = 'Day' AND total_row_style = 0
+    THEN SAFE_CAST(breakdown_1 AS DATE) ELSE NULL END
+  granularities:
+    day: >-
+      CASE WHEN '{{ filters.breakdown }}' = 'Day' AND total_row_style = 0
+      THEN SAFE_CAST(breakdown_1 AS DATE) ELSE NULL END
 - name: breakdown_1
   type: string
   label: Primary breakdown
