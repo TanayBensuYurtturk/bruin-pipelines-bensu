@@ -1,7 +1,7 @@
 schema: v1
 name: orders
 label: Orders
-description: Orders model covering string, number, boolean, and time dimensions.
+description: Orders model covering string, number, boolean, and time dimensions..
 source:
   table: bruin-playground-bensu.analytics.orders
 primary_key: order_id
