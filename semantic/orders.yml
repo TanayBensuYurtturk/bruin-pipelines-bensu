@@ -63,6 +63,68 @@ metrics:
     expression: sum(amount)
     filter: "status = 'completed'"
     hidden: true
+  - name: completed_orders
+    label: Completed Orders
+    expression: count(*)
+    filter: "status = 'completed'"
+    group: Volume
+    format: { type: number }
+  - name: pending_orders
+    label: Pending Orders
+    expression: count(*)
+    filter: "status = 'pending'"
+    group: Volume
+    format: { type: number }
+  - name: cancelled_orders
+    label: Cancelled Orders
+    expression: count(*)
+    filter: "status = 'cancelled'"
+    group: Volume
+    format: { type: number }
+  - name: high_value_orders
+    label: High-Value Orders (≥ $300)
+    expression: count(*)
+    filter: "amount >= 300"
+    group: Volume
+    format: { type: number }
+  - name: unique_customers
+    label: Unique Customers
+    expression: count(distinct customer_id)
+    group: Volume
+    format: { type: number }
+  - name: cancelled_revenue
+    label: Cancelled Revenue
+    description: Order value lost to cancellations
+    expression: sum(amount)
+    filter: "status = 'cancelled'"
+    group: Revenue
+    format: { type: currency, currency: USD, decimals: 0 }
+  - name: max_order_value
+    label: Largest Order
+    expression: max(amount)
+    group: Revenue
+    format: { type: currency, currency: USD, decimals: 2 }
+  - name: revenue_per_customer
+    label: Revenue per Customer
+    expression: "SAFE_DIVIDE({gross_revenue}, {unique_customers})"
+    group: Revenue
+    format: { type: currency, currency: USD, decimals: 2 }
+  - name: completion_rate
+    label: Completion Rate
+    expression: "SAFE_DIVIDE({completed_orders}, {order_count})"
+    group: Rates
+    format: { type: percentage, decimals: 1 }
+  - name: cancellation_rate
+    label: Cancellation Rate
+    expression: "SAFE_DIVIDE({cancelled_orders}, {order_count})"
+    group: Rates
+    format: { type: percentage, decimals: 1 }
+  - name: high_value_share
+    label: High-Value Share
+    description: Share of orders worth at least $300
+    expression: "SAFE_DIVIDE({high_value_orders}, {order_count})"
+    group: Rates
+    format: { type: percentage, decimals: 1 }
   - name: running_revenue     # window: type + order_by + partition_by
     label: Running Revenue
     expression: "{gross_revenue}"
