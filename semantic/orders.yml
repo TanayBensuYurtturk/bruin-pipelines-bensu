@@ -140,6 +140,16 @@ metrics:
       order_by: created_at
       offset: 1
 
+  - name: order_value_history
+    label: Order Value Trend
+    description: Individual order amounts in timestamp order for the selected orders.
+    group: Trends
+    expression: >-
+      TO_JSON_STRING(ARRAY_AGG(JSON_OBJECT(
+        'order_date', FORMAT_TIMESTAMP('%Y-%m-%dT%H:%M:%E6SZ', created_at),
+        'order_value', amount
+      ) ORDER BY created_at, order_id))
+
 segments:
   - name: completed           # name + label + description + filter
     label: Completed
