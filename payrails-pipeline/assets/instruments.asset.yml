@@ -1,8 +1,0 @@
-name: payrails.instruments
-type: ingestr
-connection: gcp-default
-
-parameters:
-  source_connection: payrails-bensu
-  source_table: instruments
-  destination: bigquery

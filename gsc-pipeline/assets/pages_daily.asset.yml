@@ -1,8 +1,0 @@
-name: gsc.pages_daily
-type: ingestr
-connection: gcp-default
-
-parameters:
-  source_connection: gsc-bensu
-  source_table: 'daily:page'
-  destination: bigquery

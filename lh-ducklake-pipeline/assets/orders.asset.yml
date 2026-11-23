@@ -1,8 +1,0 @@
-name: ducklake.orders
-type: ingestr
-connection: ducklake-pg
-
-parameters:
-  source_connection: duckdb-default
-  source_table: raw.orders
-  destination: duckdb

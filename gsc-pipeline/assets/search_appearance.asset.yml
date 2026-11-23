@@ -1,8 +1,0 @@
-name: gsc.search_appearance
-type: ingestr
-connection: gcp-default
-
-parameters:
-  source_connection: gsc-bensu
-  source_table: searchAppearance
-  destination: bigquery
