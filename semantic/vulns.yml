@@ -1,0 +1,79 @@
+schema: v1
+name: vulns
+label: Exploited Vulnerabilities
+description: CISA Known Exploited Vulnerabilities, one row per CVE, with today's EPSS score.
+source:
+  table: bruin-playground-bensu.security.vulns
+primary_key: cve_id
+
+dimensions:
+  - name: cve_id
+    label: CVE
+    type: string
+  - name: vendor
+    label: Vendor
+    type: string
+  - name: product
+    label: Product
+    type: string
+  - name: name
+    label: Vulnerability
+    type: string
+  - name: date_added
+    label: Date Added
+    description: When CISA added the CVE to the catalog
+    type: time
+    granularities:
+      week: date_trunc(date_added, WEEK(MONDAY))
+      month: date_trunc(date_added, MONTH)
+      year: date_trunc(date_added, YEAR)
+  - name: due_date
+    label: Patch Due Date
+    description: CISA deadline for federal agencies to patch
+    type: time
+  - name: is_ransomware
+    label: Used in Ransomware
+    type: boolean
+  - name: epss
+    label: EPSS Score
+    description: Probability of exploitation in the next 30 days (0 to 1)
+    type: number
+
+metrics:
+  - name: vuln_count
+    label: Exploited Vulnerabilities
+    expression: count(*)
+    format: { type: number }
+  - name: ransomware_count
+    label: Used in Ransomware
+    expression: count(*)
+    filter: "is_ransomware"
+    format: { type: number }
+  - name: ransomware_share
+    label: Ransomware Share
+    expression: "SAFE_DIVIDE({ransomware_count}, {vuln_count})"
+    format: { type: percentage, decimals: 1 }
+  - name: vendor_count
+    label: Vendors Affected
+    expression: count(distinct vendor)
+    format: { type: number }
+  - name: avg_epss
+    label: Avg EPSS
+    expression: avg(epss)
+    format: { type: percentage, decimals: 1 }
+  - name: high_risk_count
+    label: High Risk (EPSS ≥ 50%)
+    expression: count(*)
+    filter: "epss >= 0.5"
+    format: { type: number }
+
+segments:
+  - name: this_year
+    label: Added This Year
+    filter: "date_added >= date_trunc(current_date(), YEAR)"
+  - name: last_30_days
+    label: Added in Last 30 Days
+    filter: "date_added >= date_sub(current_date(), INTERVAL 30 DAY)"
+  - name: due_soon
+    label: Patch Due in Next 30 Days
+    filter: "due_date BETWEEN current_date() AND date_add(current_date(), INTERVAL 30 DAY)"
