@@ -39,6 +39,29 @@ dimensions:
     label: EPSS Score
     description: Probability of exploitation in the next 30 days (0 to 1)
     type: number
+  - name: published_date
+    label: Published
+    description: When the CVE was first published
+    type: time
+    granularities:
+      month: date_trunc(published_date, MONTH)
+      year: date_trunc(published_date, YEAR)
+  - name: days_to_exploit
+    label: Days to Exploit
+    description: Days from CVE publication to CISA adding it to KEV
+    type: number
+  - name: cvss_score
+    label: CVSS
+    type: number
+  - name: cvss_severity
+    label: Severity
+    type: string
+  - name: cwe
+    label: Weakness (CWE)
+    type: string
+  - name: description
+    label: Description
+    type: string
 
 metrics:
   - name: vuln_count
@@ -67,6 +90,15 @@ metrics:
     expression: count(*)
     filter: "epss >= 0.5"
     format: { type: number }
+
+  - name: median_days_to_exploit
+    label: Median Days to Exploit
+    expression: "APPROX_QUANTILES(days_to_exploit, 2)[OFFSET(1)]"
+    format: { type: number }
+  - name: avg_cvss
+    label: Avg CVSS
+    expression: avg(cvss_score)
+    format: { type: number, decimals: 1 }
 
 segments:
   - name: this_year

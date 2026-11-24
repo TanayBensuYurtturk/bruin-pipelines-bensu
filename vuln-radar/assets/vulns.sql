@@ -7,6 +7,7 @@ materialization:
 depends:
   - security.kev
   - security.epss
+  - security.cve_details
 
 columns:
   - name: cve_id
@@ -26,6 +27,12 @@ SELECT
   DATE(k.due_date) AS due_date,
   k.ransomware_use = 'Known' AS is_ransomware,
   e.epss,
-  e.percentile AS epss_percentile
+  e.percentile AS epss_percentile,
+  DATE(d.published_at) AS published_date,
+  DATE_DIFF(DATE(k.date_added), DATE(d.published_at), DAY) AS days_to_exploit,
+  d.cvss_score,
+  UPPER(d.cvss_severity) AS cvss_severity,
+  d.cwe
 FROM security.kev AS k
 LEFT JOIN security.epss AS e USING (cve_id)
+LEFT JOIN security.cve_details AS d USING (cve_id)
