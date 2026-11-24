@@ -1,5 +1,5 @@
 name: Vuln Radar
-description: Actively exploited vulnerabilities from the CISA KEV catalog, with today's EPSS risk scores.
+description: Security flaws that attackers are actually using today, from the CISA Known Exploited Vulnerabilities (KEV) list, enriched with CVE records and EPSS scores. Refreshed daily.
 connection: gcp-default
 model: vulns # semantic/vulns.yml
 
@@ -31,12 +31,12 @@ filters:
       dimension: cve_id
 
 queries:
-  by_month:
+  by_speed:
     model: vulns
     dimensions:
-      - name: date_added
-        granularity: month
-    metrics: [vuln_count, ransomware_count]
+      - name: exploit_speed
+      - name: exploit_speed_rank
+    metrics: [vuln_count]
     filters: &added_scope
       - dimension: date_added
         operator: between
@@ -51,14 +51,52 @@ queries:
         operator: in
         value: "{{ filters.cve }}"
     sort:
-      - name: date_added
+      - name: exploit_speed_rank
         direction: asc
-  by_day:
+  by_severity:
+    model: vulns
+    dimensions:
+      - name: cvss_severity
+    metrics: [vuln_count]
+    filters: *added_scope
+    sort:
+      - name: vuln_count
+        direction: desc
+  by_month:
     model: vulns
     dimensions:
       - name: date_added
+        granularity: month
+      - name: ransomware_label
     metrics: [vuln_count]
     filters: *added_scope
+    sort:
+      - name: date_added
+        direction: asc
+  by_weakness:
+    model: vulns
+    dimensions:
+      - name: weakness_type
+    metrics: [vuln_count]
+    filters:
+      - dimension: date_added
+        operator: between
+        value: { start: "{{ filters.added.start }}", end: "{{ filters.added.end }}" }
+      - dimension: vendor
+        operator: in
+        value: "{{ filters.vendor }}"
+      - dimension: product
+        operator: in
+        value: "{{ filters.product }}"
+      - dimension: cve_id
+        operator: in
+        value: "{{ filters.cve }}"
+      - dimension: weakness_type
+        operator: not_equals
+        value: Unknown
+    sort:
+      - name: vuln_count
+        direction: desc
   top_vendors:
     model: vulns
     dimensions:
@@ -69,28 +107,15 @@ queries:
       - name: vuln_count
         direction: desc
     limit: 10
-  top_products:
-    model: vulns
-    dimensions:
-      - name: product
-    metrics: [vuln_count]
-    filters: *added_scope
-    sort:
-      - name: vuln_count
-        direction: desc
-    limit: 15
-  high_risk_vendors:
-    model: vulns
-    dimensions:
-      - name: vendor
-    metrics: [high_risk_count]
-    filters: *added_scope
-    sort:
-      - name: high_risk_count
-        direction: desc
-    limit: 10
 
 rows:
+  - widgets:
+      - name: How to read this
+        type: text
+        content: |
+          **Exploited** = CISA confirmed attackers used it in the wild. **Time to exploit** = days from the CVE being published to CISA listing it as exploited. **CVSS** = how severe the vendor rates the flaw. **EPSS** = chance it gets exploited (again) in the next 30 days. **Patch due** = CISA's deadline for US federal agencies.
+        col: 12
+
   - widgets:
       - name: Exploited Vulnerabilities
         type: metric
@@ -98,19 +123,19 @@ rows:
         filters: *added_scope
         value: { field: vuln_count, type: number, format: ",.0f" }
         col: 3
-      - name: Used in Ransomware
+      - name: Median Days from Disclosure to Exploit
         type: metric
-        metric: ransomware_share
+        metric: median_days_to_exploit
         filters: *added_scope
-        value: { field: ransomware_share, type: number, format: ".1%" }
+        value: { field: median_days_to_exploit, type: number, format: ",.0f" }
         col: 3
-      - name: High Risk (EPSS ≥ 50%)
+      - name: Exploited Within a Week of Disclosure
         type: metric
-        metric: high_risk_count
+        metric: fast_exploit_share
         filters: *added_scope
-        value: { field: high_risk_count, type: number, format: ",.0f" }
+        value: { field: fast_exploit_share, type: number, format: ".0%" }
         col: 3
-      - name: Patch Due in 30 Days
+      - name: Patch Deadline in Next 30 Days
         type: metric
         metric: vuln_count
         segments: [due_soon]
@@ -128,70 +153,83 @@ rows:
         col: 3
 
   - widgets:
-      - name: Added per Month, and How Many Were Used in Ransomware
-        type: chart
-        chart: combo
-        query: by_month
-        lines: [ransomware_count]
-        x: { field: date_added, type: date, format: "%b %Y" }
-        y: { field: [vuln_count, ransomware_count], type: number }
-        col: 8
-      - name: High-Risk Vulns by Vendor (EPSS ≥ 50%)
+      - name: How Fast Were They Exploited After Being Published?
         type: chart
         chart: bar
-        query: high_risk_vendors
-        horizontal: true
-        x: { field: vendor, type: category }
-        y: { field: high_risk_count, type: number }
-        col: 4
+        query: by_speed
+        x: { field: exploit_speed, type: category }
+        y: { field: vuln_count, type: number, title: Vulnerabilities }
+        col: 7
+      - name: How Severe Are They? (CVSS rating)
+        type: chart
+        chart: pie
+        query: by_severity
+        label: cvss_severity
+        value: { field: vuln_count }
+        slices:
+          CRITICAL: { color: "#DC2626", label: Critical }
+          HIGH: { color: "#F97316", label: High }
+          MEDIUM: { color: "#EAB308", label: Medium }
+          LOW: { color: "#22C55E", label: Low }
+        col: 5
 
   - widgets:
-      - name: Top Vendors
+      - name: Newly Exploited Vulnerabilities per Month
+        type: chart
+        chart: bar
+        query: by_month
+        x: { field: date_added, type: date }
+        y: { field: vuln_count, type: number, title: Vulnerabilities }
+        color: { field: ransomware_label }
+        stacked: true
+        col: 12
+
+  - height: 420
+    widgets:
+      - name: What Kind of Flaws Get Exploited? (where the type is known)
+        type: chart
+        chart: bar
+        query: by_weakness
+        horizontal: true
+        x: { field: weakness_type, type: category }
+        y: { field: vuln_count, type: number }
+        col: 6
+      - name: Most Exploited Vendors
         type: chart
         chart: bar
         query: top_vendors
+        horizontal: true
         x: { field: vendor, type: category }
         y: { field: vuln_count, type: number }
-        col: 5
-      - name: Most Hit Products
-        type: chart
-        chart: treemap
-        query: top_products
-        label: product
-        value: { field: vuln_count }
-        col: 7
+        col: 6
 
   - widgets:
-      - name: Days CISA Added New Exploits
-        type: chart
-        chart: calendar
-        query: by_day
-        x: { field: date_added, type: date }
-        value: { field: vuln_count }
-        col: 12
-
-  - widgets:
-      - name: Patch Due in the Next 30 Days
+      - name: Patch Deadline in the Next 30 Days
         type: table
         dimensions:
           - name: cve_id
           - name: vendor
           - name: product
+          - name: weakness_type
+          - name: cvss_score
           - name: due_date
           - name: epss
         metrics: [vuln_count]
         segments: [due_soon]
         filters: *scope
         sort:
-          - name: epss
-            direction: desc
-        limit: 25
+          - name: due_date
+            direction: asc
+        limit: 50
         columns:
           - { name: cve_id, label: CVE }
           - { name: vendor, label: Vendor }
           - { name: product, label: Product }
-          - { name: due_date, label: Patch Due }
+          - { name: weakness_type, label: Weakness }
+          - { name: cvss_score, label: CVSS }
+          - { name: due_date, label: Patch Deadline }
           - { name: epss, label: EPSS, number: { type: percentage, decimals: 1 } }
+          - { name: vuln_count, hidden: true }
         col: 12
 
   - widgets:
@@ -202,7 +240,11 @@ rows:
           - name: name
           - name: vendor
           - name: product
+          - name: weakness_type
+          - name: cvss_severity
+          - name: published_date
           - name: date_added
+          - name: days_to_exploit
           - name: due_date
           - name: is_ransomware
           - name: epss
@@ -217,8 +259,13 @@ rows:
           - { name: name, label: Vulnerability }
           - { name: vendor, label: Vendor }
           - { name: product, label: Product }
-          - { name: date_added, label: Added }
-          - { name: due_date, label: Patch Due }
+          - { name: weakness_type, label: Weakness }
+          - { name: cvss_severity, label: Severity }
+          - { name: published_date, label: Published }
+          - { name: date_added, label: Exploited (KEV) }
+          - { name: days_to_exploit, label: Days to Exploit }
+          - { name: due_date, label: Patch Deadline }
           - { name: is_ransomware, label: Ransomware }
           - { name: epss, label: EPSS, number: { type: percentage, decimals: 1 } }
+          - { name: vuln_count, hidden: true }
         col: 12

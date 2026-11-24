@@ -32,7 +32,8 @@ SELECT
   DATE_DIFF(DATE(k.date_added), DATE(d.published_at), DAY) AS days_to_exploit,
   d.cvss_score,
   UPPER(d.cvss_severity) AS cvss_severity,
-  d.cwe
+  d.cwe,
+  k.cwes AS cwe_ids
 FROM security.kev AS k
 LEFT JOIN security.epss AS e USING (cve_id)
 LEFT JOIN security.cve_details AS d USING (cve_id)

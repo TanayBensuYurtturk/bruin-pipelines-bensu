@@ -62,6 +62,53 @@ dimensions:
   - name: description
     label: Description
     type: string
+  - name: weakness_type
+    label: Weakness Type
+    description: Plain-language group of the CVE's CWE weakness
+    type: string
+    expression: |
+      CASE
+        WHEN REGEXP_CONTAINS(CONCAT(IFNULL(cwe_ids, ''), ' ', IFNULL(cwe, '')), r'CWE-(77|78|88|94|89|74|917|1336|95|91|611)\b') THEN 'Injection'
+        WHEN REGEXP_CONTAINS(CONCAT(IFNULL(cwe_ids, ''), ' ', IFNULL(cwe, '')), r'CWE-(287|288|290|306|862|863|284|285|269|639|1390|425|420|640|521|307|295|264|276|347|732)\b') THEN 'Access Control'
+        WHEN REGEXP_CONTAINS(CONCAT(IFNULL(cwe_ids, ''), ' ', IFNULL(cwe, '')), r'CWE-(787|416|119|125|120|122|121|190|189|843|476|415|124|822|823|824|908|788)\b') THEN 'Memory Bugs'
+        WHEN REGEXP_CONTAINS(CONCAT(IFNULL(cwe_ids, ''), ' ', IFNULL(cwe, '')), r'CWE-502\b') THEN 'Deserialization'
+        WHEN REGEXP_CONTAINS(CONCAT(IFNULL(cwe_ids, ''), ' ', IFNULL(cwe, '')), r'CWE-(22|23|24|35|36|59|73)\b') THEN 'Path Traversal'
+        WHEN REGEXP_CONTAINS(CONCAT(IFNULL(cwe_ids, ''), ' ', IFNULL(cwe, '')), r'CWE-434\b') THEN 'File Upload'
+        WHEN REGEXP_CONTAINS(CONCAT(IFNULL(cwe_ids, ''), ' ', IFNULL(cwe, '')), r'CWE-918\b') THEN 'SSRF'
+        WHEN REGEXP_CONTAINS(CONCAT(IFNULL(cwe_ids, ''), ' ', IFNULL(cwe, '')), r'CWE-(79|80)\b') THEN 'XSS'
+        WHEN REGEXP_CONTAINS(CONCAT(IFNULL(cwe_ids, ''), ' ', IFNULL(cwe, '')), r'CWE-(798|259|321|522|200|312|532)\b') THEN 'Leaked Secrets'
+        WHEN REGEXP_CONTAINS(CONCAT(IFNULL(cwe_ids, ''), ' ', IFNULL(cwe, '')), r'CWE-20\b') THEN 'Input Validation'
+        WHEN REGEXP_CONTAINS(CONCAT(IFNULL(cwe_ids, ''), ' ', IFNULL(cwe, '')), r'CWE-(362|367)\b') THEN 'Race Condition'
+        ELSE 'Unknown'
+      END
+  - name: exploit_speed
+    label: Time to Exploit
+    description: How long after the CVE was published it showed up as exploited
+    type: string
+    expression: |
+      CASE
+        WHEN days_to_exploit < 0 THEN 'Before disclosure'
+        WHEN days_to_exploit <= 7 THEN 'Within a week'
+        WHEN days_to_exploit <= 30 THEN 'Within a month'
+        WHEN days_to_exploit <= 365 THEN 'Within a year'
+        WHEN days_to_exploit > 365 THEN 'Over a year'
+      END
+  - name: exploit_speed_rank
+    label: Time to Exploit (order)
+    type: number
+    hidden: true
+    expression: |
+      CASE
+        WHEN days_to_exploit < 0 THEN 1
+        WHEN days_to_exploit <= 7 THEN 2
+        WHEN days_to_exploit <= 30 THEN 3
+        WHEN days_to_exploit <= 365 THEN 4
+        WHEN days_to_exploit > 365 THEN 5
+      END
+  - name: ransomware_label
+    label: Ransomware
+    type: string
+    expression: "IF(is_ransomware, 'Used in ransomware', 'Not known in ransomware')"
 
 metrics:
   - name: vuln_count
@@ -95,6 +142,15 @@ metrics:
     label: Median Days to Exploit
     expression: "APPROX_QUANTILES(days_to_exploit, 2)[OFFSET(1)]"
     format: { type: number }
+  - name: fast_exploit_count
+    label: Exploited Within a Week
+    expression: count(*)
+    filter: "days_to_exploit <= 7"
+    format: { type: number }
+  - name: fast_exploit_share
+    label: Exploited Within a Week of Disclosure
+    expression: "SAFE_DIVIDE({fast_exploit_count}, {vuln_count})"
+    format: { type: percentage, decimals: 0 }
   - name: avg_cvss
     label: Avg CVSS
     expression: avg(cvss_score)
