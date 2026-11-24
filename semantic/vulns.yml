@@ -3,6 +3,7 @@ name: vulns
 label: Exploited Vulnerabilities
 description: CISA Known Exploited Vulnerabilities, one row per CVE, with today's EPSS score..
 source:
+  connection: gcp-default
   table: bruin-playground-bensu.security.vulns
 primary_key: cve_id
 

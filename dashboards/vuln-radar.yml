@@ -1,0 +1,224 @@
+name: Vuln Radar
+description: Actively exploited vulnerabilities from the CISA KEV catalog, with today's EPSS risk scores.
+connection: gcp-default
+model: vulns # semantic/vulns.yml
+
+filters:
+  - name: added
+    type: date-range
+    default: this_year
+    options:
+      presets: [last_30_days, last_90_days, this_year, all_time]
+  - name: vendor
+    type: select
+    multiple: true
+    default: []
+    options:
+      dimension: vendor
+      metric: vuln_count
+  - name: product
+    type: select
+    multiple: true
+    default: []
+    options:
+      dimension: product
+      metric: vuln_count
+  - name: cve
+    type: select
+    multiple: true
+    default: []
+    options:
+      dimension: cve_id
+
+queries:
+  by_month:
+    model: vulns
+    dimensions:
+      - name: date_added
+        granularity: month
+    metrics: [vuln_count, ransomware_count]
+    filters: &added_scope
+      - dimension: date_added
+        operator: between
+        value: { start: "{{ filters.added.start }}", end: "{{ filters.added.end }}" }
+      - dimension: vendor
+        operator: in
+        value: "{{ filters.vendor }}"
+      - dimension: product
+        operator: in
+        value: "{{ filters.product }}"
+      - dimension: cve_id
+        operator: in
+        value: "{{ filters.cve }}"
+    sort:
+      - name: date_added
+        direction: asc
+  by_day:
+    model: vulns
+    dimensions:
+      - name: date_added
+    metrics: [vuln_count]
+    filters: *added_scope
+  top_vendors:
+    model: vulns
+    dimensions:
+      - name: vendor
+    metrics: [vuln_count]
+    filters: *added_scope
+    sort:
+      - name: vuln_count
+        direction: desc
+    limit: 10
+  top_products:
+    model: vulns
+    dimensions:
+      - name: product
+    metrics: [vuln_count]
+    filters: *added_scope
+    sort:
+      - name: vuln_count
+        direction: desc
+    limit: 15
+  high_risk_vendors:
+    model: vulns
+    dimensions:
+      - name: vendor
+    metrics: [high_risk_count]
+    filters: *added_scope
+    sort:
+      - name: high_risk_count
+        direction: desc
+    limit: 10
+
+rows:
+  - widgets:
+      - name: Exploited Vulnerabilities
+        type: metric
+        metric: vuln_count
+        filters: *added_scope
+        value: { field: vuln_count, type: number, format: ",.0f" }
+        col: 3
+      - name: Used in Ransomware
+        type: metric
+        metric: ransomware_share
+        filters: *added_scope
+        value: { field: ransomware_share, type: number, format: ".1%" }
+        col: 3
+      - name: High Risk (EPSS ≥ 50%)
+        type: metric
+        metric: high_risk_count
+        filters: *added_scope
+        value: { field: high_risk_count, type: number, format: ",.0f" }
+        col: 3
+      - name: Patch Due in 30 Days
+        type: metric
+        metric: vuln_count
+        segments: [due_soon]
+        filters: &scope
+          - dimension: vendor
+            operator: in
+            value: "{{ filters.vendor }}"
+          - dimension: product
+            operator: in
+            value: "{{ filters.product }}"
+          - dimension: cve_id
+            operator: in
+            value: "{{ filters.cve }}"
+        value: { field: vuln_count, type: number, format: ",.0f" }
+        col: 3
+
+  - widgets:
+      - name: Added per Month, and How Many Were Used in Ransomware
+        type: chart
+        chart: combo
+        query: by_month
+        lines: [ransomware_count]
+        x: { field: date_added, type: date, format: "%b %Y" }
+        y: { field: [vuln_count, ransomware_count], type: number }
+        col: 8
+      - name: High-Risk Vulns by Vendor (EPSS ≥ 50%)
+        type: chart
+        chart: bar
+        query: high_risk_vendors
+        horizontal: true
+        x: { field: vendor, type: category }
+        y: { field: high_risk_count, type: number }
+        col: 4
+
+  - widgets:
+      - name: Top Vendors
+        type: chart
+        chart: bar
+        query: top_vendors
+        x: { field: vendor, type: category }
+        y: { field: vuln_count, type: number }
+        col: 5
+      - name: Most Hit Products
+        type: chart
+        chart: treemap
+        query: top_products
+        label: product
+        value: { field: vuln_count }
+        col: 7
+
+  - widgets:
+      - name: Days CISA Added New Exploits
+        type: chart
+        chart: calendar
+        query: by_day
+        x: { field: date_added, type: date }
+        value: { field: vuln_count }
+        col: 12
+
+  - widgets:
+      - name: Patch Due in the Next 30 Days
+        type: table
+        dimensions:
+          - name: cve_id
+          - name: vendor
+          - name: product
+          - name: due_date
+          - name: epss
+        metrics: [vuln_count]
+        segments: [due_soon]
+        filters: *scope
+        sort:
+          - name: epss
+            direction: desc
+        limit: 25
+        columns:
+          - { name: cve_id, label: CVE }
+          - { name: vendor, label: Vendor }
+          - { name: product, label: Product }
+          - { name: due_date, label: Patch Due }
+          - { name: epss, label: EPSS, number: { type: percentage, decimals: 1 } }
+        col: 12
+
+  - widgets:
+      - name: All Exploited Vulnerabilities
+        type: table
+        dimensions:
+          - name: cve_id
+          - name: name
+          - name: vendor
+          - name: product
+          - name: date_added
+          - name: due_date
+          - name: is_ransomware
+          - name: epss
+        metrics: [vuln_count]
+        filters: *added_scope
+        sort:
+          - name: date_added
+            direction: desc
+        limit: 500
+        columns:
+          - { name: cve_id, label: CVE }
+          - { name: name, label: Vulnerability }
+          - { name: vendor, label: Vendor }
+          - { name: product, label: Product }
+          - { name: date_added, label: Added }
+          - { name: due_date, label: Patch Due }
+          - { name: is_ransomware, label: Ransomware }
+          - { name: epss, label: EPSS, number: { type: percentage, decimals: 1 } }
+        col: 12
